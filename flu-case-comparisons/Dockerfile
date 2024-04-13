@@ -1,8 +1,4 @@
-# I spent the whole damn morning trying to fix my latex environment on manjaro,
-# all to no avail. So fuck that shit. I'll install it all on an ubuntu
-# container.
-
-FROM ubuntu:latest
+FROM ubuntu:22.04
 
 # Set environment variables to avoid interactive prompts during package installations
 ENV DEBIAN_FRONTEND=noninteractive
@@ -13,6 +9,8 @@ RUN apt-get update && \
     make \
     python3-pip \
     libeigen3-dev \
+    git \
+    vim \
     && apt-get clean
 
 # apt-get installes the eigen libraries into a `eigen3` subfolder, but
@@ -21,8 +19,5 @@ RUN ln -s /usr/include/eigen3/Eigen /usr/include/Eigen
 
 RUN pip3 install pybind11 numpy
 
-WORKDIR /case-comparison
-COPY apps /case-comparison
-
-CMD ["bash"]
-# CMD pip install rooted_tree/
+# CMD ["bash"]
+CMD pip install apps/rooted_tree/

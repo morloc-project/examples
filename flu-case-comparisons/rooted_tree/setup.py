@@ -11,6 +11,9 @@ ext_modules = [
     ),
 ]
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
     name="rooted_tree",
     version=__version__,
@@ -18,6 +21,7 @@ setup(
     author_email="zbwrnz@gmail.com",
     url="https://github.com/morloc-project/examples",
     description="A python wrapper around the C++ rooted tree type",
+    long_description_content_type="text/markdown",
     long_description="",
     ext_modules=ext_modules,
     extras_require={"test": "pytest"},
