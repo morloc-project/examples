@@ -20,6 +20,7 @@ namespace py = pybind11;
 #include "kmer.hpp"
 #include "tree.hpp"
 #include "upgma.hpp"
+#include "io.hpp"
 
 RootedTree<int, double, int>
 makeTree(int kmer_size, std::vector<std::string> seqs){
@@ -47,7 +48,20 @@ PYBIND11_MODULE(rooted_tree, m) {
         Make a distance matrix from a kmer length and list of sequences
     )pbdoc");
 
+    m.def("writeTreeInt", &write_int_tree, R"pbdoc(
+        Write a tree with integer leaves and nodes
+    )pbdoc");
+
+    m.def("writeTreeStr", &write_str_tree, R"pbdoc(
+        Write a tree with string leaves and nodes
+    )pbdoc");
+
+    m.def("readTree", &read_tree, R"pbdoc(
+        Read a tree with string leaves and nodes
+    )pbdoc");
+
     py::class_<RootedTree<int, double, int>>(m, "RootedTreeIFI");
+    py::class_<RootedTree<std::string, double, std::string>>(m, "RootedTreeSFS");
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
