@@ -9,10 +9,12 @@ typedef struct Edge{
 } Edge;
 
 // adapted from morloc bio.tree module
-RootedTree<int, double, int> edge_map_to_tree(int root, std::vector<std::vector<Edge>> edges){
+RootedTree<int, double, int>
+edge_map_to_tree(int root, std::vector<std::vector<Edge>> edges)
+{
     RootedTree<int, double, int> tree;
 
-    for(int i = 0; i < edges[root].size(); i++){
+    for(size_t i = 0; i < edges[root].size(); i++){
         tree.edges.push_back(edges[root][i].dist);
         int childIndex = edges[root][i].child;
 
@@ -33,9 +35,10 @@ RootedTree<int, double, int> edge_map_to_tree(int root, std::vector<std::vector<
 // upgmaFromDist :: Matrix Real -> RootedTree () Real Int This is a naive cubic
 // time algorithm. Quadratic time algorithms are possible, this implementation
 // just serves as a baseline.
-RootedTree<int, double, int> upgmaFromDist(
+RootedTree<int, double, int>
+upgmaFromDist(
   Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> mat
-){
+) {
 
     int Nleafs = mat.cols();
     int Nnodes = 0;
@@ -50,7 +53,7 @@ RootedTree<int, double, int> upgmaFromDist(
     //
     // matrix indices map into the `indices` vector to find the tree indices
     std::vector<int> indices(Nleafs);
-    for(int i = 0; i < indices.size(); i++){
+    for(size_t i = 0; i < indices.size(); i++){
       indices[i] = i;
       sizes[i] = 1; // the size of each leaf is 1
     }

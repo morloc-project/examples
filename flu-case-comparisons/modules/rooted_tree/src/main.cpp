@@ -1,6 +1,3 @@
-#ifndef __MAIN_HPP__
-#define __MAIN_HPP__
-
 #include <vector>
 #include <string>
 #include <functional>
@@ -21,9 +18,11 @@ namespace py = pybind11;
 #include "tree.hpp"
 #include "upgma.hpp"
 #include "io.hpp"
+#include "classify.hpp"
 
 RootedTree<int, double, int>
-makeTree(int kmer_size, std::vector<std::string> seqs){
+makeTree(int kmer_size, std::vector<std::string> seqs)
+{
   return upgmaFromDist(makeDistMat(kmer_size, seqs));
 }
 
@@ -60,6 +59,10 @@ PYBIND11_MODULE(rooted_tree, m) {
         Read a tree with string leaves and nodes
     )pbdoc");
 
+    m.def("classify", &classify, R"pbdoc(
+        Classify all leaves in a tree given presence of a few leaves
+    )pbdoc");
+
     py::class_<RootedTree<int, double, int>>(m, "RootedTreeIFI");
     py::class_<RootedTree<std::string, double, std::string>>(m, "RootedTreeSFS");
 
@@ -69,6 +72,3 @@ PYBIND11_MODULE(rooted_tree, m) {
     m.attr("__version__") = "0.1.0";
 #endif
 }
-
-
-#endif

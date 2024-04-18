@@ -17,7 +17,7 @@ RUN apt-get update && \
 # pybind11 expects the main `Eigen` folder to be in PATH
 RUN ln -s /usr/include/eigen3/Eigen /usr/include/Eigen
 
-RUN pip3 install pybind11 numpy
+RUN pip3 install pybind11 numpy biopython requests
 
 # CMD ["bash"]
 CMD pip install apps/rooted_tree/

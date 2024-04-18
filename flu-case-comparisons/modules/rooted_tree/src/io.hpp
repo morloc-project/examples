@@ -8,7 +8,9 @@
 #include <variant>
 
 // Quote a string and escape inner quotes
-std::string quoted(std::string str) {
+std::string
+quoted(std::string str)
+{
     size_t pos = str.find('"');
     while (pos != std::string::npos) {
         str.replace(pos, 1, "\\\""); // Escape internal quote with backslash
@@ -19,13 +21,17 @@ std::string quoted(std::string str) {
 
 // Quote anything that can be converted to a string
 template<typename T>
-std::string quoted(T value) {
+std::string
+quoted(T value)
+{
     std::string str = std::to_string(value);
     return quoted(str);
 }
 
 // Unquote a string
-std::string unquote(std::string str) {
+std::string
+unquote(std::string str)
+{
     // Remove leading and trailing double quotes if present
     if (str.size() >= 2 && str.front() == '"' && str.back() == '"') {
         str = str.substr(1, str.size() - 2);
@@ -42,7 +48,9 @@ std::string unquote(std::string str) {
 }
 
 // Helper function to trim whitespace from both ends of a string
-std::string trim(const std::string& str) {
+std::string
+trim(const std::string& str)
+{
     size_t first = str.find_first_not_of(' ');
     if (std::string::npos == first) {
         return str;
@@ -56,7 +64,9 @@ std::string trim(const std::string& str) {
 
 // Recursive function to write Newick representation of the tree
 template <typename Node, typename Leaf>
-void write_tree_recursive(const RootedTree<Node, double, Leaf>& tree, std::ofstream& ofs) {
+void
+write_tree_recursive(const RootedTree<Node, double, Leaf>& tree, std::ofstream& ofs)
+{
     // If it's a leaf, write its name
     if (tree.children.empty()) {
         ofs << quoted(tree.data);
@@ -93,7 +103,9 @@ void write_tree_recursive(const RootedTree<Node, double, Leaf>& tree, std::ofstr
 
 // Function to write tree to Newick file
 template <typename Node, typename Leaf>
-void write_tree(const RootedTree<Node, double, Leaf>& tree, const std::string& filename) {
+void
+write_tree(const RootedTree<Node, double, Leaf>& tree, const std::string& filename)
+{
     std::ofstream ofs(filename);
     if (ofs.is_open()) {
         write_tree_recursive(tree, ofs);
@@ -105,11 +117,15 @@ void write_tree(const RootedTree<Node, double, Leaf>& tree, const std::string& f
     }
 }
 
-void write_int_tree(const RootedTree<int, double, int>& tree, const std::string& filename) {
+void
+write_int_tree(const RootedTree<int, double, int>& tree, const std::string& filename)
+{
   write_tree(tree, filename);
 }
 
-void write_str_tree(const RootedTree<std::string, double, std::string>& tree, const std::string& filename) {
+void
+write_str_tree(const RootedTree<std::string, double, std::string>& tree, const std::string& filename)
+{
   write_tree(tree, filename);
 }
 
@@ -119,7 +135,9 @@ void write_str_tree(const RootedTree<std::string, double, std::string>& tree, co
 //   "Unicorn":4.20
 // Quotes are optional
 // There may be spaces
-void parse_name_and_length (const std::string& newick_str, size_t& pos, std::string& name, double& length){
+void
+parse_name_and_length (const std::string& newick_str, size_t& pos, std::string& name, double& length)
+{
    // Parse node or leaf name with optional branch length
    size_t end_pos = newick_str.find_first_of(",);", pos);
    std::string token = trim(newick_str.substr(pos, end_pos - pos));
@@ -137,7 +155,9 @@ void parse_name_and_length (const std::string& newick_str, size_t& pos, std::str
 
 
 // Recursive function to parse Newick representation and construct the tree
-RootedTree<std::string, double, std::string> parse_newick(const std::string& newick_str, size_t& pos) {
+RootedTree<std::string, double, std::string>
+parse_newick(const std::string& newick_str, size_t& pos)
+{
     RootedTree<std::string, double, std::string> tree;
     std::string token;
     char current_char;
@@ -177,7 +197,9 @@ RootedTree<std::string, double, std::string> parse_newick(const std::string& new
 
 
 // Function to read tree from Newick file
-RootedTree<std::string, double, std::string> read_tree(const std::string& filename) {
+RootedTree<std::string, double, std::string>
+read_tree(const std::string& filename)
+{
     std::ifstream ifs(filename);
     if (!ifs.is_open()) {
         throw std::runtime_error("Failed to open file: " + filename);
