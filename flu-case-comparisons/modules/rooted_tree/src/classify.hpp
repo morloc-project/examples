@@ -23,11 +23,11 @@ reset_leaf(std::vector<std::string> refmap, int index)
 }
 
 // add clade information from reference table to the tree leaves
-RootedTree<std::string, double, std::tuple<std::string,int>>
-assign_reference_clades(std::vector<std::string> refmap, RootedTree<std::string, double, int> tree)
+RootedTree<int, double, std::tuple<std::string,int>>
+assign_reference_clades(std::vector<std::string> refmap, RootedTree<int, double, int> tree)
 {
   auto reset_leaf_app = std::bind(reset_leaf, refmap, std::placeholders::_1);
-  return mapLeaf<std::string,double,int,std::tuple<std::string,int>>(reset_leaf_app, tree);
+  return mapLeaf<int,double,int,std::tuple<std::string,int>>(reset_leaf_app, tree);
 }
 
 
@@ -72,11 +72,11 @@ pullClade(std::vector<std::string> xs)
 // index that may be used to access the sequence and metadata stored in an
 // external table.
 RootedTree<std::string, double, std::tuple<std::string,int>>
-classify(std::vector<std::string> refmap, RootedTree<std::string, double, int> tree)
+classify(std::vector<std::string> refmap, RootedTree<int, double, int> tree)
 {
   auto tree1 = assign_reference_clades(refmap, tree);
 
-  auto tree2 = pullNode<std::string, double, std::tuple<std::string,int>, std::string>(
+  auto tree2 = pullNode<int, double, std::tuple<std::string,int>, std::string>(
       fst<std::string,int>,
       pullClade,
       tree1

@@ -1,0 +1,35 @@
+# Comparison of morloc versus other approaches
+
+## Setup
+
+Create a Docker image that contains everything needed to run all of the comparisons (morloc, pybind11 for Python/C++ interop, nextflow, snakemake, etc)
+
+```
+sudo make build
+```
+
+Enter the container shell:
+
+```
+sudo make shell
+```
+
+This mounts the current working directory into the container as a virtual
+volume. This means that from within the container you may alter this folder and
+the changes will persist on your machine, but no other changes (installed
+programs, for instance) will be visible.
+
+Inside the shell, you need to build the tree and retrieveFlu modules:
+
+```
+pip install modules/rooted_tree
+pip install apps/retrieveFlu
+```
+
+Then go to case_python and run pybase.py
+
+```
+python3 pybase.py
+```
+
+This should create a tree file

@@ -18,6 +18,3 @@ RUN apt-get update && \
 RUN ln -s /usr/include/eigen3/Eigen /usr/include/Eigen
 
 RUN pip3 install pybind11 numpy biopython requests
-
-# CMD ["bash"]
-CMD pip install apps/rooted_tree/

@@ -192,8 +192,7 @@ pull(
 //     (\n es -> g (map snd es)) -- create new node from child nodes, ignore the current node value
 template<typename Node, typename Edge, typename Leaf, typename NodePrime>
 RootedTree<NodePrime,Edge,Leaf>
-pullNode(
-  std::function<NodePrime(Leaf)> f,
+pullNode( std::function<NodePrime(Leaf)> f,
   std::function<NodePrime(std::vector<NodePrime>)> g,
   RootedTree<Node,Edge,Leaf> tree
 ) {
