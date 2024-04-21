@@ -111,7 +111,6 @@ write_tree(const RootedTree<Node, double, Leaf>& tree, const std::string& filena
         write_tree_recursive(tree, ofs);
         ofs << ";" << std::endl; // End with semicolon
         ofs.close();
-        std::cout << "Newick file written to " << filename << std::endl;
     } else {
         std::cerr << "Unable to open file " << filename << " for writing." << std::endl;
     }

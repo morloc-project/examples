@@ -1,0 +1,10 @@
+Package: flutree
+Title: Plot phylogenetic trees
+Version: 0.0.0.9000
+Authors@R: 
+    person("Zebulun", "Arendsee", email = "zbwrnz@gmail.com", role = c("aut", "cre"))
+Description: Plot phylogenetic trees and refactor them for passing between languages.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.0.0

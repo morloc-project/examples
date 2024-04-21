@@ -19,6 +19,7 @@ namespace py = pybind11;
 #include "upgma.hpp"
 #include "io.hpp"
 #include "classify.hpp"
+#include "pack.hpp"
 
 RootedTree<int, double, int>
 makeTree(int kmer_size, std::vector<std::string> seqs)
@@ -68,10 +69,15 @@ PYBIND11_MODULE(rooted_tree, m) {
         &mapLeaf<std::string, double, std::tuple<std::string, int>, std::string>,
         R"pbdoc(Map a function over the leaves of the tree)pbdoc");
 
+    m.def(
+        "unpack",
+        &unpack<std::string, double, std::string>,
+        R"pbdoc(Represent a tree as a tuple of node names, edges lengths, and leaf names)pbdoc");
+
     py::class_<RootedTree<int, double, int>>(m, "RootedTreeIFI");
     py::class_<RootedTree<std::string, double, int>>(m, "RootedTreeSFI");
     py::class_<RootedTree<std::string, double, std::string>>(m, "RootedTreeSFS");
-    py::class_<RootedTree<std::string, double, std::tuple<std::string,int>>>(m, "RootedTreeSFT");
+    py::class_<RootedTree<std::string, double, std::tuple<std::string,int>>>(m, "RootedTreeSFP");
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
