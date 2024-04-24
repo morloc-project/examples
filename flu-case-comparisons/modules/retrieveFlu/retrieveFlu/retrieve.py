@@ -14,25 +14,25 @@ def read_references(reffile):
     return refmap
 
 # This function contains the same basic logic as the `searchEntrez` function in the morloc script
-def retrieve_records(config):
-    search_config = dict(
-        email = config["email"]
-      , db = "nuccore"
-      , mindate = config["mindate"]
-      , maxdate = config["maxdate"]
-      , retmax = 1000
-      )
-    fetch_config = dict( email = config["email"] )
-    refmap = read_references(config["reffile"])
+def retrieve_records(reffile, mindate, maxdate, email, query):
+    refmap = read_references(reffile)
 
-    ids = list(refmap.keys()) + search_entrez(search_config, config["query"])
+    query_ids = search_entrez(
+        query
+      , mindate = mindate
+      , maxdate = maxdate
+      , db = "nuccore"
+      , retmax = 1000
+    )
+
+    ids = list(refmap.keys()) + query_ids 
 
     chunkSize=30
     records = []
 
     for i in range(0, len(ids) - 1, chunkSize):
         idsChunk = ids[i:i+chunkSize]
-        for record in get_nucleotide_accession_data(fetch_config, idsChunk):
+        for record in get_nucleotide_accession_data(idsChunk, email=email):
             sequence = record["GBSeq_sequence"].upper() 
             accession = record["GBSeq_primary-accession"]
             del record["GBSeq_sequence"]

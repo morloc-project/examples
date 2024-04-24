@@ -5,7 +5,7 @@ __version__ = "0.0.1"
 
 ext_modules = [
     Pybind11Extension(
-        "rooted_tree",
+        "treebase",
         ["src/main.cpp"],
         define_macros=[("VERSION_INFO", __version__)],
     ),
@@ -15,7 +15,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name="rooted_tree",
+    name="treebase",
     version=__version__,
     author="Zebulun Arendsee",
     author_email="zbwrnz@gmail.com",
@@ -27,5 +27,6 @@ setup(
     extras_require={"test": "pytest"},
     cmdclass={"build_ext": build_ext},
     zip_safe=False,
+    entry_points={"console_scripts": ["rooted=rooted_tree.main:main"]},
     python_requires=">=3.7",
 )

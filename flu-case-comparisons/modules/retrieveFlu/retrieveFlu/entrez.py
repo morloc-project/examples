@@ -3,22 +3,16 @@ import requests
 from Bio import Entrez 
 import time
 
-def search_entrez(config, query):
-    """
-    example:
-        config = dict(db="nuccore", retmax=20, mindate="2021/01/01", maxdate="2021/12/31")
-        query = "Influenza+A+Virus[Organism]+H5N1"
-        result = search_entrez(config, query)
-    """
+def search_entrez(query, mindate, maxdate, db = "nuccore", retmax = 1000):
     base = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
     params = {
-        "db": config["db"],
+        "db": db,
         "term": query,
         "retmode": "json",
-        "retmax": str(config["retmax"]),
+        "retmax": str(retmax),
         "datetype": "pdat",
-        "mindate": config["mindate"],
-        "maxdate": config["maxdate"],
+        "mindate": mindate,
+        "maxdate": maxdate,
         "idtype": "acc",
     }
 
@@ -29,14 +23,14 @@ def search_entrez(config, query):
 
     return result["idlist"]
 
-def get_nucleotide_accession_data(config, gb_ids):
+def get_nucleotide_accession_data(gb_ids, email):
     """
     Lookup json metadata for a list of ids in entrez.
     """
 
-    print(f"retrieving {len(gb_ids)} ids", file=sys.stderr)
+    print(f"  retrieving {len(gb_ids)} ids", file=sys.stderr)
 
-    Entrez.email = config["email"]
+    Entrez.email = email
 
     records = []
     success = False
@@ -53,7 +47,6 @@ def get_nucleotide_accession_data(config, gb_ids):
             attempt += 1
             print(f"Received error from server {err}", file=sys.stderr)
             print(f"Attempt {str(attempt)} of 5 attempts", file=sys.stderr)
-            print(str(config), file=sys.stderr)
             print(str(gb_ids), file=sys.stderr)
             time.sleep(15)
 

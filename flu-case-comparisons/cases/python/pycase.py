@@ -22,7 +22,7 @@ def plotTree(filename, tree):
     import rpy2.rinterface as ri
     from rpy2.robjects.conversion import Converter
     from rpy2.robjects import default_converter
-    import rooted_tree as rt
+    import treebase
 
     #### Set up handling for converting Py/C++ tree object to R phylo objects
     flutree = rpackages.importr('flutree')
@@ -36,14 +36,14 @@ def plotTree(filename, tree):
           2) an edge map represented by a list of 3-element lists (parent node index, child index, branch length)
           3) a character vector of leaf names
         """
-        (leafs, edges, nodes) = rt.unpack(tree)
+        (leafs, edges, nodes) = treebase.unpack(tree)
         rleafs = ri.StrSexpVector(leafs)
         redges = ri.ListSexpVector([ri.ListSexpVector([ri.IntSexpVector([i]), ri.IntSexpVector([j]), ri.FloatSexpVector([e])])  for (i,j,e) in edges])
         rnodes = ri.StrSexpVector(nodes)
         return (ri.ListSexpVector([rleafs, redges, rnodes]))
 
     tree_converter = Converter('tree converter')
-    tree_converter.py2rpy.register(rt.RootedTreeSFS, rooted_tree_conversion)
+    tree_converter.py2rpy.register(treebase.RootedTreeSFS, rooted_tree_conversion)
 
     extended_converter = tree_converter + default_converter
 
@@ -77,34 +77,6 @@ def make_refmap(records, reffile):
             refmap.append("")
     return refmap
 
-def run(config):
-    import rooted_tree as rt
-    import retrieveFlu as retrieve
-
-    # list of dictionaries with the keys:
-    #  * accession
-    #  * sequence
-    #  * clade
-    #  * meta
-    print("Python: retrieving data from entrez", file=sys.stderr)
-    records = retrieve.retrieve_records(config)
-
-    print("Py to C++: making UPGMA tree", file=sys.stderr)
-    upgmaTree = rt.makeTree(4, [x["sequence"] for x in records]) 
-
-    print("Py to C++: classifying leaves", file=sys.stderr)
-    classTree = rt.classify(make_refmap(records, config["reffile"]), upgmaTree)
-
-    print("Py to C++/Py: setting leaf names", file=sys.stderr)
-    labeledTree = rt.mapLeaf(make_setLeafName(records), classTree)
-
-    print(f'''Py to C++: writing file tree to {config["treefile"]}''', file=sys.stderr)
-    rt.writeTree(labeledTree, config["treefile"])
-
-    print(f'''Py to R: plotting the tree to {config["plotfile"]}''', file=sys.stderr)
-    plotTree(config["plotfile"], labeledTree)
-
-
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
 @click.argument('REFFILE', type=click.Path(exists=True), metavar = "REFFILE")
 @click.option('--mindate', default="2021/01/01", type=str, help='Minimum date (default: 2021/01/01)')
@@ -119,17 +91,40 @@ def cli(reffile, mindate, maxdate, plotfile, treefile, email, query):
 
     REFFILE: Path to the reference file. TAB-delimited, headerless file with two columns: accession and clade.
     """
-    config = {
-        "mindate": mindate,
-        "maxdate": maxdate,
-        "reffile": reffile,
-        "plotfile": plotfile,
-        "treefile": treefile,
-        "email": email,
-        "query": query
-    }
 
-    run(config)
+    import treebase
+    import retrieveFlu
+
+    # list of dictionaries with the keys:
+    #  * accession
+    #  * sequence
+    #  * clade
+    #  * meta
+    print("Python: retrieving data from entrez", file=sys.stderr)
+    records = retrieveFlu.retrieve_records(
+        reffile = reffile,
+        mindate = mindate,
+        maxdate = maxdate,
+        email = email,
+        query = query
+    )
+
+    print("Py to C++: making UPGMA tree", file=sys.stderr)
+    upgmaTree = treebase.makeTree(4, [x["sequence"] for x in records]) 
+
+    print("Py to C++: classifying leaves", file=sys.stderr)
+    classTree = treebase.classify(make_refmap(records, reffile), upgmaTree)
+
+    print("Py to C++/Py: setting leaf names", file=sys.stderr)
+    labeledTree = treebase.mapLeaf(make_setLeafName(records), classTree)
+
+    print(f'''Py to C++: writing file tree to {treefile}''', file=sys.stderr)
+    treebase.writeTree(labeledTree, treefile)
+
+    print(f'''Py to R: plotting the tree to {plotfile}''', file=sys.stderr)
+    plotTree(plotfile, labeledTree)
+
+
 
 if __name__ == '__main__':
     cli()

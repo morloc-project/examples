@@ -130,22 +130,22 @@ push_r(
 }
 
 
-
 // pull :: (l -> n')
 //      -> (n -> e -> n' -> e')
 //      -> (n -> [(e', n')] -> n')
 //      -> RootedTree n e l
 //      -> RootedTree n' e' l
 template<typename Leaf, typename NodePrime, typename Node, typename Edge, typename EdgePrime>
-RootedTree<NodePrime, EdgePrime, Leaf>
-pull(
+RootedTree<NodePrime, EdgePrime, Leaf> pull(
     std::function<NodePrime(Leaf)> handleLeaf,
     std::function<EdgePrime(Node, Edge, NodePrime)> updateEdge,
     std::function<NodePrime(Node, std::vector<std::tuple<EdgePrime, NodePrime>>)> updateNode,
-    RootedTree<Node, Edge, Leaf> initialTree
+    RootedTree<Node, Edge, Leaf> initialTree 
 ) {
     RootedTree<NodePrime, EdgePrime, Leaf> newTree;
+
     std::vector<std::tuple<Edge, NodePrime>> links;
+
     for (std::size_t i = 0; i < initialTree.children.size(); i++){
         auto child = initialTree.children[i];
         auto edge = initialTree.edges[i];
@@ -165,11 +165,10 @@ pull(
             newTree.children.push_back(newSubtree);
             links.push_back(std::make_tuple(edge, newSubtree.data));
         }
-        else {
-        }
     }
 
     std::vector<std::tuple<EdgePrime, NodePrime>> updatedLinks;
+
     for (auto link : links){
         // synthesize new edge
         EdgePrime newEdge = updateEdge(initialTree.data, std::get<0>(link), std::get<1>(link));
@@ -177,14 +176,39 @@ pull(
         // add element to [(e', n')] vector
         updatedLinks.push_back(std::make_tuple(newEdge, std::get<1>(link)));
     }
-
+    
     // synthesize new node from original node and [(e', n')] vector
     newTree.data = updateNode(initialTree.data, updatedLinks);
+
     return newTree;
 }
 
 
-// -- pull values from leaf to root
+template<typename Node, typename Edge, typename Leaf>
+std::vector<Leaf>
+get_leafs(const RootedTree<Node,Edge,Leaf>& tree)
+{
+  std::vector<Leaf> leafs;
+  get_leafs_r(tree, leafs);
+  return leafs;
+}
+
+
+template<typename Node, typename Edge, typename Leaf>
+void
+get_leafs_r(const RootedTree<Node,Edge,Leaf>& tree, std::vector<Leaf>& leafs)
+{
+    for (int i = 0; i < tree.children.size(); i++){
+        auto child = tree.children[i];
+        if (std::holds_alternative<RootedTree<Node, Edge, Leaf>>(child)) {
+            get_leafs_r(std::get<RootedTree<Node, Edge, Leaf>>(child), leafs);
+        } else {
+            leafs.push_back(std::get<Leaf>(child));
+        }
+    }
+}
+
+
 // pullNode :: (l -> n') -> ([n'] -> n') -> RootedTree n e l -> RootedTree n' e l
 // pullNode f g = pull
 //     (\l -> f l) -- generate n' using f
@@ -192,7 +216,8 @@ pull(
 //     (\n es -> g (map snd es)) -- create new node from child nodes, ignore the current node value
 template<typename Node, typename Edge, typename Leaf, typename NodePrime>
 RootedTree<NodePrime,Edge,Leaf>
-pullNode( std::function<NodePrime(Leaf)> f,
+pullNode(
+  std::function<NodePrime(Leaf)> f,
   std::function<NodePrime(std::vector<NodePrime>)> g,
   RootedTree<Node,Edge,Leaf> tree
 ) {

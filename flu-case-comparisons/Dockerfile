@@ -24,7 +24,8 @@ RUN pip3 install pybind11 numpy biopython requests rpy2 click
 COPY modules /cases-lib
 WORKDIR /cases-lib
 
-RUN pip3 install rooted_tree/
+RUN pip3 install treebase/
+RUN pip3 install tree/
 RUN pip3 install retrieveFlu/
 
 ENV R_HOME="/usr/lib/R"

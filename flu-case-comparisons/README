@@ -1,5 +1,7 @@
 # Comparison of morloc versus other approaches
 
+This repository contains four implementations of the influenza case study presented in the first morloc paper.
+
 ## Setup
 
 Create a Docker image that contains everything needed to run all of the comparisons (morloc, pybind11 for Python/C++ interop, nextflow, snakemake, etc)
@@ -33,3 +35,13 @@ python3 pybase.py
 ```
 
 This should create a tree file
+
+## Case study version 1: Python
+
+## Case study version 2: Bash
+
+## Case study version 3: Snakemake
+
+## Case study version 4: Nextflow
+
+## Case study version 5: Morloc
