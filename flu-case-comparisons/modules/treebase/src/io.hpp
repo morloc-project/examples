@@ -93,8 +93,7 @@ write_tree_recursive(const RootedTree<Node, double, Leaf>& tree, std::ostream& s
                 ss << quoted(leaf);
             }
 
-            // Write edge length if greater than 0
-            if((tree.edges.size() > i) && (tree.edges[i] > 0)){
+            if((tree.edges.size() > i)){
               ss << ":" << tree.edges[i];
             }
         }
