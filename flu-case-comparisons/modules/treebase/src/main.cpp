@@ -112,6 +112,7 @@ PYBIND11_MODULE(treebase, m) {
 
     m.def("mapLeaf", &mapLeaf<std::string, double, std::tuple<std::string, int>, std::string>, R"pbdoc(Map a function over the leaves)pbdoc");
     m.def("mapLeaf", &mapLeaf<std::string, double, std::string, int>, R"pbdoc(Map a function over the leaves)pbdoc");
+    m.def("mapLeafSFSS", &mapLeaf<std::string, double, std::string, std::string>, R"pbdoc(Map a function over the leaves)pbdoc");
     m.def("mapLeaf", &mapLeaf<int, double, int, std::string>, R"pbdoc(Map a function over the leaves)pbdoc");
 
     m.def(
