@@ -209,10 +209,36 @@ parse_newick(const std::string& newick_str, size_t& pos)
     return tree;
 }
 
+// Remove an empty root node
+template <typename Node, typename Edge, typename Leaf>
+RootedTree<Node,Edge,Leaf>
+rebase(RootedTree<Node,Edge,Leaf> tree)
+{
+  if (tree.children.size() == 1){
+    if (std::holds_alternative<RootedTree<Node, Edge, Leaf>>(tree.children[0])) {
+        auto subtree = std::get<RootedTree<Node, Edge, Leaf>>(tree.children[0]);
+        if (subtree.children.size() == 1){
+          return subtree;
+        }
+    }
+  }
+  return tree;
+}
+
 RootedTree<std::string, double, std::string>
 read_tree_str(const std::string& newick_str){
   size_t pos = 0;
-  return parse_newick(newick_str, pos); 
+  auto tree = parse_newick(newick_str, pos); 
+
+  // The newick parser wraps the tree in an extra node, this needs to be removed
+  if (tree.children.size() != 1) {
+    // The error below will be raised in cases such as "A,B;".
+    throw std::runtime_error("Error: expected exactly one tree in the newick file");
+  }
+
+  tree = rebase(tree);
+
+  return tree;
 }
 
 // Function to read tree from Newick file
