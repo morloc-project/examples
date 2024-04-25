@@ -106,7 +106,9 @@ std::string
 write_tree_str(const RootedTree<Node, double, Leaf>& tree)
 {
   std::stringstream ss;
+  ss << "(";
   write_tree_recursive(tree, ss);
+  ss << ")";
   return ss.str();
 }
 
