@@ -10,11 +10,6 @@ def make_rename(meta, clademap):
     return rename
 
 
-metafile="01-retrieved-data/metadata.json"
-treefile="02-unclassified-tree/tree.newick"
-cladefile="03-classifications/class-table.txt"
-    
-
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
 @click.argument('TREEFILE', type=click.Path(exists=True), metavar = "TREEFILE")
 @click.argument('METAFILE', type=click.Path(exists=True), metavar = "METAFILE")
