@@ -1,0 +1,61 @@
+rule plot:
+  input:
+    labeled_tree = "04-named-tree/tree.newick"
+
+  output:
+    plot = "05-plot/tree.pdf"
+  script:
+    "scripts/plot.R"
+
+rule name_leaves:
+  input:
+    classless_tree = "02-unclassified-tree/tree.newick"
+    metadata = "01-retrieved-data/metadata.json",
+    class_table = "03-classifications/class-table.txt",
+  output:
+    labeled_tree = "04-named-tree/tree.newick"
+  script:
+    "scripts/reanmer.py"
+
+rule classify:
+  input:
+    tree = "02-unclassified-tree/tree.newick",
+    reffile = "../../test-data/refs.txt"
+  output:
+    class_table = "03-classifications/class-table.txt"
+  shell:
+    """
+    tree classify {input.tree} {input.reffile} > {output.class_table}
+    """
+
+rule make_tree:
+  input:
+    sequence = "01-retrieved-data/sequence.fasta"
+  output:
+    tree = "02-unclassified-tree/tree.newick"
+  shell:
+    """
+    tree upgma -k 8 {input.sequence} > {output.tree}
+    """
+
+rule retrieve_data:
+  input:
+    reffile = "../../test-data/refs.txt"
+  output:
+    "01-retrieved-data/metadata.json",
+    "01-retrieved-data/sequence.fasta"
+  params:
+    query = "Influenza+A+Virus[Organism]+H3N2[ALL]+HA[ALL]",
+    mindate = "2021/01/01",
+    maxdate = "2021/01/14",
+    email = "wena@mailinator.com",
+  shell:
+    """
+    retrieveFlu \
+       --mindate {params.mindate} \
+       --maxdate {params.maxdate} \
+       --email {params.email} \
+       --query {params.query} \
+       {input.reffile} \
+       "01-retrieved-data"
+    """
