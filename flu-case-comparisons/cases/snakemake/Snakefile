@@ -9,13 +9,13 @@ rule plot:
 
 rule name_leaves:
   input:
-    classless_tree = "02-unclassified-tree/tree.newick"
+    classless_tree = "02-unclassified-tree/tree.newick",
     metadata = "01-retrieved-data/metadata.json",
-    class_table = "03-classifications/class-table.txt",
+    class_table = "03-classifications/class-table.txt"
   output:
     labeled_tree = "04-named-tree/tree.newick"
   script:
-    "scripts/reanmer.py"
+    "scripts/renamer.py"
 
 rule classify:
   input:
