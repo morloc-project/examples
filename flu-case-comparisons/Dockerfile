@@ -4,34 +4,42 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 
-RUN apt-get update && \
-    apt-get install -y \
-    make \
-    python3-pip \
-    libeigen3-dev \
-    git \
-    vim \
-    r-base \
+# libeigen3-dev - eigen library for matrix operations in C++
+RUN    apt-get update \
+    && apt-get install -y make python3-pip libeigen3-dev git vim r-base \
     && apt-get clean \
     && python3 -m pip install --upgrade pip setuptools wheel
 
-# apt-get installes the eigen libraries into a `eigen3` subfolder, but
+# apt-get installs the eigen libraries into a `eigen3` subfolder, but
 # pybind11 expects the main `Eigen` folder to be in PATH
 RUN ln -s /usr/include/eigen3/Eigen /usr/include/Eigen
 
 RUN pip3 install pybind11 numpy biopython requests rpy2 click
 
+
+#### Setup the case study code and build apps
 COPY modules /cases-lib
 WORKDIR /cases-lib
 
-RUN pip3 install treebase/
-RUN pip3 install tree/
-RUN pip3 install retrieveFlu/
+RUN pip3 install treebase/ tree/ retrieveFlu/
 
 ENV R_HOME="/usr/lib/R"
 ENV R_LIBS="/usr/lib/R/library"
 ENV R_LIBS_SITE="/usr/lib/R/library"
 
-RUN Rscript -e 'install.packages("ape", repos  = "https://cloud.r-project.org")' && \
-    R CMD build flutree && \
-    R CMD INSTALL flutree_*.tar.gz
+RUN    Rscript -e 'install.packages("ape", repos  = "https://cloud.r-project.org")' \
+    && R CMD build flutree \
+    && R CMD INSTALL flutree_*.tar.gz
+
+
+#### Setup workflow managers
+
+# Install snakemake and dependencies
+# The pulp downgrade is required to avoid breaking change in new versions
+RUN pip3 install snakemake pulp==2.7.0
+
+
+# Install nextflow and dependencies
+RUN    pip3 install nextflow \
+    && apt-get install -y default-jre wget \
+    && nextflow info
