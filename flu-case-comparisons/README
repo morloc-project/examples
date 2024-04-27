@@ -21,27 +21,34 @@ volume. This means that from within the container you may alter this folder and
 the changes will persist on your machine, but no other changes (installed
 programs, for instance) will be visible.
 
-Inside the shell, you need to build the tree and retrieveFlu modules:
-
-```
-pip install modules/rooted_tree
-pip install apps/retrieveFlu
-```
-
-Then go to case_python and run pybase.py
-
-```
-python3 pybase.py
-```
-
-This should create a tree file
+The container has everything needed installed.
 
 ## Case study version 1: Python
 
+```
+cd cases/python
+python3 pycase.py ../../test-data/refs.txt
+```
+
 ## Case study version 2: Bash
+
+```
+cd cases/bash
+`bash flu.sh`
+```
 
 ## Case study version 3: Snakemake
 
+```
+cd cases/snakemake
+snakemake -c1
+```
+
 ## Case study version 4: Nextflow
+
+```
+cd cases/nextflow
+nextflow main.nf
+```
 
 ## Case study version 5: Morloc
