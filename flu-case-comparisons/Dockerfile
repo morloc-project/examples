@@ -1,12 +1,19 @@
-FROM ubuntu:22.04
+FROM arendsee/morloc:v0.47.2
 
 # Set environment variables to avoid interactive prompts during package installations
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 
+# The following are imported from the base:
+#  * make
+#  * python3-pip
+#  * git
+#  * vim
+#  * r-base
+#
 # libeigen3-dev - eigen library for matrix operations in C++
 RUN    apt-get update \
-    && apt-get install -y make python3-pip libeigen3-dev git vim r-base \
+    && apt-get install -y libeigen3-dev \
     && apt-get clean \
     && python3 -m pip install --upgrade pip setuptools wheel
 
@@ -38,8 +45,10 @@ RUN    Rscript -e 'install.packages("ape", repos  = "https://cloud.r-project.org
 # The pulp downgrade is required to avoid breaking change in new versions
 RUN pip3 install snakemake pulp==2.7.0
 
-
 # Install nextflow and dependencies
 RUN    pip3 install nextflow \
     && apt-get install -y default-jre wget \
     && nextflow info
+
+# Cleanup to reduce image size
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*

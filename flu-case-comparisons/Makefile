@@ -1,7 +1,9 @@
+REPO=arendsee/flucase-comparisons
+
 # Build the required docker image
 build:
-	docker build -t flu-comp .
+	docker build -t ${REPO} .
 
 # Open a shell
 shell:
-	docker run -v .:/case -w /case -it flu-comp /bin/bash 
+	docker run -v .:/case -w /case -it ${REPO} /bin/bash 
