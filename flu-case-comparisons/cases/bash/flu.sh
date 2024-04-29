@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-nameLeaves="../../app/nameLeaves.py"
-plot="../../app/plotTree.R"
+nameLeaves="scripts/nameLeaves.py"
+plot="scripts/plotTree.R"
 
 # write two files into output directory 01-*
 #  1. sequence.fasta - retireved sequences with accessions in headers
