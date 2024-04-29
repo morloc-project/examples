@@ -55,17 +55,15 @@ process name_leaves {
     publishDir "results", mode: "copy", overwrite: true
 
     input:
-    path classless_tree
+    path unlabeled_tree
     path metadata
     path class_table
     
     output:
-    path "labeled_tree.newick"
+    path "labeled_tree.newick", emit: labeled_tree
     
-    shell:
-    """
-    python3 /case/app/nameLeaves.py $classless_tree $metadata $class_table > "labeled_tree.newick"
-    """
+    script:
+    template "nameLeaves.py"
 }
 
 process plot {
@@ -77,10 +75,8 @@ process plot {
     output:
     path "tree.pdf"
     
-    shell:
-    """
-    Rscript /case/app/plotTree.R $labeled_tree tree.pdf
-    """
+    script:
+    template "plotTree.R"
 }
 
 workflow {
