@@ -87,7 +87,6 @@ workflow {
 
     ch_class_table = CLASSIFY(ch_tree, params.reffile)
 
-    ch_labeled_tree = NAME_LEAVES(ch_tree, RETRIEVE_DATA.out.metadata, ch_class_table)
-
-    ch_treeplot = PLOT(ch_labeled_tree)
+    ch_treeplot = NAME_LEAVES(ch_tree, RETRIEVE_DATA.out.metadata, ch_class_table)
+    | PLOT
 }
