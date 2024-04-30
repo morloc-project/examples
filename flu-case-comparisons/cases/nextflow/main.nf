@@ -9,8 +9,8 @@ process RETRIEVE_DATA {
     val reffile
     
     output:
-    path "01-retrieved-data/metadata.json"
-    path "01-retrieved-data/sequence.fasta"
+    path "01-retrieved-data/metadata.json", emit: metadata
+    path "01-retrieved-data/sequence.fasta", emit: sequence
     
     script:
     """
@@ -60,7 +60,7 @@ process NAME_LEAVES {
     path class_table
     
     output:
-    path "labeled_tree.newick", emit: labeled_tree
+    path "labeled_tree.newick"
     
     script:
     template "nameLeaves.py"
@@ -83,11 +83,11 @@ workflow {
 
     RETRIEVE_DATA(params.reffile)
 
-    tree = MAKE_TREE(RETRIEVE_DATA.out[1])
+    tree = MAKE_TREE(RETRIEVE_DATA.out.sequence)
 
     class_table = CLASSIFY(tree, params.reffile)
 
-    labeled_tree = NAME_LEAVES(tree, RETRIEVE_DATA.out[0], class_table)
+    labeled_tree = NAME_LEAVES(tree, RETRIEVE_DATA.out.metadata, class_table)
 
     treeplot = PLOT(labeled_tree)
 }
