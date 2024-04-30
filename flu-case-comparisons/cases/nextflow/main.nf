@@ -83,11 +83,11 @@ workflow {
 
     RETRIEVE_DATA(params.reffile)
 
-    tree = MAKE_TREE(RETRIEVE_DATA.out.sequence)
+    ch_tree = MAKE_TREE(RETRIEVE_DATA.out.sequence)
 
-    class_table = CLASSIFY(tree, params.reffile)
+    ch_class_table = CLASSIFY(ch_tree, params.reffile)
 
-    labeled_tree = NAME_LEAVES(tree, RETRIEVE_DATA.out.metadata, class_table)
+    ch_labeled_tree = NAME_LEAVES(ch_tree, RETRIEVE_DATA.out.metadata, ch_class_table)
 
-    treeplot = PLOT(labeled_tree)
+    ch_treeplot = PLOT(ch_labeled_tree)
 }
