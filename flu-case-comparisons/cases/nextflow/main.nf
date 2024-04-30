@@ -4,13 +4,13 @@ params.maxdate = "2021/01/14"
 params.email = "wena@mailinator.com"
 params.reffile = "/case/test-data/refs.txt"
 
-process retrieve_data {
+process RETRIEVE_DATA {
     input:
     val reffile
     
     output:
-    path "01-retrieved-data/metadata.json"
-    path "01-retrieved-data/sequence.fasta"
+    path "01-retrieved-data/metadata.json", emit: metadata
+    path "01-retrieved-data/sequence.fasta", emit: sequence
     
     script:
     """
@@ -24,7 +24,7 @@ process retrieve_data {
     """
 }
 
-process make_tree {
+process MAKE_TREE {
     input:
     path tree
     
@@ -37,7 +37,7 @@ process make_tree {
     """
 }
 
-process classify {
+process CLASSIFY {
     input:
     path tree
     path reffile
@@ -51,7 +51,7 @@ process classify {
     """
 }
 
-process name_leaves {
+process NAME_LEAVES {
     publishDir "results", mode: "copy", overwrite: true
 
     input:
@@ -60,13 +60,13 @@ process name_leaves {
     path class_table
     
     output:
-    path "labeled_tree.newick", emit: labeled_tree
+    path "labeled_tree.newick"
     
     script:
     template "nameLeaves.py"
 }
 
-process plot {
+process PLOT {
     publishDir "results", mode: "copy", overwrite: true
 
     input:
@@ -81,13 +81,12 @@ process plot {
 
 workflow {
 
-    retrieve_data(params.reffile)
+    RETRIEVE_DATA(params.reffile)
 
-    tree = make_tree(retrieve_data.out[1])
+    ch_tree = MAKE_TREE(RETRIEVE_DATA.out.sequence)
 
-    class_table = classify(tree, params.reffile)
+    ch_class_table = CLASSIFY(ch_tree, params.reffile)
 
-    labeled_tree = name_leaves(tree, retrieve_data.out[0], class_table)
-
-    treeplot = plot(labeled_tree)
+    ch_treeplot = NAME_LEAVES(ch_tree, RETRIEVE_DATA.out.metadata, ch_class_table)
+    | PLOT
 }

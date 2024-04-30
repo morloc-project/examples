@@ -42,8 +42,8 @@ rule retrieve_data:
   input:
     reffile = "../../test-data/refs.txt"
   output:
-    "01-retrieved-data/metadata.json",
-    "01-retrieved-data/sequence.fasta"
+    metadata = "01-retrieved-data/metadata.json",
+    sequences = "01-retrieved-data/sequence.fasta"
   params:
     query = "Influenza+A+Virus[Organism]+H3N2[ALL]+HA[ALL]",
     mindate = "2021/01/01",
