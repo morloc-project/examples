@@ -48,7 +48,7 @@ snakemake -c1
 
 ```
 cd cases/nextflow
-nextflow main.nf
+nextflow run main.nf
 ```
 
 ## Case study version 5: Morloc
