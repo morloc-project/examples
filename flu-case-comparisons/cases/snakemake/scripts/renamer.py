@@ -33,5 +33,5 @@ make_renamed_file(
     treefile = snakemake.input[0],
     metafile = snakemake.input[1],
     cladefile = snakemake.input[2],
-    outfile=snakemake.output[0]
+    outfile = snakemake.output[0]
 )
