@@ -1,0 +1,20 @@
+module flucase (plot)
+
+import types (Filename)
+
+import lib.retrieve (retrieve, setLeafName, FluConfig)
+import lib.classify (classify)
+import lib.treeplot (plotTree)
+import lib.flutypes (Date)
+
+import bio.algo (upgma)
+import bio.tree (treeBy, mapLeaf)
+
+plot :: FluConfig -> ()
+plot config =
+  ( plotTree config@treefile
+  . mapLeaf setLeafName
+  . classify
+  . treeBy upgma
+  . retrieve
+  ) config
