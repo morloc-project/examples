@@ -9,6 +9,7 @@ function log () {
   echo $1 > /dev/stderr
 }
 
+REFERENCE="data/refs.txt"
 
 # write two files into output directory 01-*
 #  1. sequence.fasta - retireved sequences with accessions in headers
@@ -28,7 +29,7 @@ else
    --maxdate "2021/01/14" \
    --email "wena@mailinator.com" \
    --query "Influenza+A+Virus[Organism]+H3N2[ALL]+HA[ALL]" \
-   "../../test-data/refs.txt" \
+   $REFERENCE \
    $dir1
 fi
 
@@ -45,7 +46,7 @@ log "Classifying taxa"
 log "- creating $dir3"
 log "- calling 'tree classify' Python script"
 mkdir -p $dir3
-tree classify ${dir2}/tree.newick ../../test-data/refs.txt > ${dir3}/class-table.txt
+tree classify ${dir2}/tree.newick $REFERENCE > ${dir3}/class-table.txt
 
 dir4="04-named-tree"
 log "Labeling leafs using classification table and metadata"

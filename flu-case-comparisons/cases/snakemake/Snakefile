@@ -20,7 +20,7 @@ rule name_leaves:
 rule classify:
   input:
     tree = "02-unclassified-tree/tree.newick",
-    reffile = "../../test-data/refs.txt"
+    reffile = "data/refs.txt"
   output:
     class_table = "03-classifications/class-table.txt"
   shell:
@@ -40,7 +40,7 @@ rule make_tree:
 
 rule retrieve_data:
   input:
-    reffile = "../../test-data/refs.txt"
+    reffile = "data/refs.txt"
   output:
     metadata = "01-retrieved-data/metadata.json",
     sequences = "01-retrieved-data/sequence.fasta"
