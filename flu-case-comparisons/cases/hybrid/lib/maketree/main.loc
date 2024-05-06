@@ -1,0 +1,16 @@
+module lib.maketree (makeTree)
+
+import lib.flutypes (Clade, Sequence)
+import json (JsonObj)
+
+import bio.algo (upgma)
+import bio.tree (treeBy, mapNode)
+import base (const)
+
+-- Each taxa is annotated with the entrez metadata object and 
+-- a (possibly empty) clade label
+type Annotation = (JsonObj, Clade)
+
+-- Make a tree from the a list of annotated sequences
+makeTree :: [(Annotation, Sequence)] -> RootedTree Str Real Annotation
+makeTree = mapNode (const "") . treeBy upgma

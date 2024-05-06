@@ -1,0 +1,7 @@
+module flucase (retrieve, makeTree, classify, setNames, plotTree)
+
+import lib.retrieve (retrieve)
+import lib.classify (classify)
+import lib.treeplot (plotTree)
+import lib.maketree (makeTree)
+import lib.setnames (setNames)

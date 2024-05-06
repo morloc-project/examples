@@ -1,0 +1,68 @@
+module lib.retrieve (retrieve, FluConfig)
+
+import lib.flutypes
+ ( Accession
+ , Clade
+ , Date
+ , Sequence
+ )
+
+
+-- Import functions for accessing public sequence records
+import bio.db
+  ( searchEntrez as fetchIds
+  , nucleotideAccessionToJson as fetchRecords
+  , EntrezSearchConfig
+  , EntrezFetchConfig
+  )
+
+
+-- Import generic functions
+import base (map, concat, shard, join, keys, onFst, sleep, readMap)
+import json (JsonObj)
+import types (Filename)
+
+
+-- Define the configuration record
+record FluConfig = FluConfig
+  { mindate :: Date
+  , maxdate :: Date
+  , reffile :: Filename
+  , treefile :: Filename
+  , query :: Str
+  , email :: Str
+  }
+
+-- Specify the representation of this record in Python
+record Py => FluConfig = "dict"
+
+-- Source python functions for dealing with Entrez records
+source Py from "entrez.py" ("parseRecord", "labelRef")
+
+-- Define the general type of each function
+parseRecord :: JsonObj -> (JsonObj, Sequence)
+labelRef :: Map Accession Clade -> JsonObj -> (JsonObj, Clade)
+
+-- Retrieve sequence data from Entrez and tag reference strains
+retrieve :: FluConfig -> [((JsonObj, Clade), Sequence)]
+retrieve config =
+  ( map (onFst (labelRef refmap))
+  . concat
+  . map ( map parseRecord
+        . sleep 1.0
+        . fetchRecords fetchConfig
+        )
+  . shard 30
+  . join (keys refmap)
+  . fetchIds searchConfig
+  ) config@query
+  where
+    searchConfig =
+      { email = config@email
+      , db = "nuccore"
+      , mindate = config@mindate
+      , maxdate = config@maxdate
+      , retmax = 1000
+      }
+    fetchConfig = { email = config@email }
+    refmap = readMap config@reffile

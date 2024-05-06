@@ -1,0 +1,16 @@
+module lib.setnames (setNames)
+
+import lib.flutypes (Clade)
+
+import json (JsonObj)
+import bio.tree (mapLeaf)
+
+-- Source C++ alternative for one of these functions
+source Cpp from "entrez.hpp" ("setLeafName")
+source Py from "entrez.py" ("setLeafName")
+
+-- Set the leaf name for a taxa given its metadata
+setLeafName :: (JsonObj, Clade) -> Str
+
+setNames :: RootedTree Clade Real (JsonObj, Clade) -> RootedTree Clade Real Str
+setNames = mapLeaf setLeafName

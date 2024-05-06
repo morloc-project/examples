@@ -1,0 +1,11 @@
+*pdf
+*rda
+__pycache__/
+log
+nexus.py
+pool-cpp.out
+pool.R
+pool.cpp
+pool.py
+tree.json
+0*
