@@ -62,3 +62,6 @@ RUN    morloc install json \
 
 # Cleanup to reduce image size
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Remove module sources
+RUN rm -rf /cases-lib
