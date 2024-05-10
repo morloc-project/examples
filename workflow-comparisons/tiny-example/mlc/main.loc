@@ -1,0 +1,9 @@
+module foo (val)
+
+source Py from "foo.py" ("add") 
+
+add :: Int -> Int -> Int
+
+type Py => Int = "int"
+
+val = add 1 2

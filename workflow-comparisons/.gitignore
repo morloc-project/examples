@@ -5,3 +5,6 @@ build/
 *pdf
 .RData
 .Rhistory
+.snakemake*
+.nextflow*
+work/

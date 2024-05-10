@@ -6,4 +6,4 @@ build:
 
 # Open a shell
 shell:
-	docker run -v ${PWD}:/case -w /case -it ${REPO} /bin/bash
+	docker run -v ${PWD}:/workflow-comparisons -w /workflow-comparisons -it ${REPO} /bin/bash
