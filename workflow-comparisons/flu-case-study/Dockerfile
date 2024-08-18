@@ -57,6 +57,7 @@ RUN apt-get install time
 
 #### Setup morloc modules for case study
 RUN    morloc install json \
+    && morloc install conventions \
     && morloc install bio \
     && morloc install matrix
 
