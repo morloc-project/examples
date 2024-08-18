@@ -2,7 +2,7 @@ params.query = "Influenza+A+Virus[Organism]+H3N2[ALL]+HA[ALL]"
 params.mindate = "2021/01/01"
 params.maxdate = "2021/01/14"
 params.email = "wena@mailinator.com"
-params.reffile = "/case/test-data/refs.txt"
+params.reffile = "/workflow-comparisons/test-data/refs.txt"
 
 process RETRIEVE_DATA {
     input:
