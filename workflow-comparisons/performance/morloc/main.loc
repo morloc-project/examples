@@ -1,0 +1,42 @@
+module parallel
+  ( testlc
+  , testlt
+  , testpc
+  , testpt
+  , testlcf
+  , testltf
+  )
+
+source Py from "mock.py" ("mockpy", "slurp")
+source R from "mock.R" ("mockr")
+
+source Py from "parallel.py" ("pmap", "nTimes", "repeat", "noop", "len" as strlen)
+
+type Py => Str = "str"
+type Py => Int = "int"
+type Py => List a = "list" a
+type Py => Unit = "None"
+
+type R => Str = "character"
+type R => List a = "list" a
+
+-- read an entire text file into memory
+slurp :: Str -> Str
+
+mockpy :: Str -> Str
+mockr :: Str -> Str
+
+nTimes a b :: Int -> (a -> b) -> a -> b
+repeat a :: Int -> a -> [a]
+strlen :: Str -> Int
+noop a :: a -> ()
+pmap a b :: (a -> b) -> [a] -> [b]
+
+testlc n = strlen . nTimes n mockpy
+testlt n = strlen . nTimes n mockr
+
+testpc n = noop . pmap mockpy . repeat n
+testpt n = noop . pmap mockr  . repeat n
+
+testlcf n = testlc n . slurp
+testltf n = testlt n . slurp
