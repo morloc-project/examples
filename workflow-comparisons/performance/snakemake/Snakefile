@@ -1,0 +1,40 @@
+# Linear sequence
+testl_input = "../data-empty.json"
+nnodes = config["nnodes"]
+
+rule testlc:
+    input: f"testlc-{str(nnodes)}.txt" # the file created by the final step
+
+rule testlc_reduce:
+    input:
+        lambda wildcards: f"testlc-{str(int(wildcards.value) - 1)}.txt" if int(wildcards.value) >= 0 else testl_input
+    output:
+        "testlc-{value}.txt"
+    script:
+        "mock.py"
+
+
+rule testlt:
+    input: f"testlt-{str(nnodes)}.txt" # the file created by the final step
+
+rule testlt_reduce:
+    input:
+        lambda wildcards: f"testlt-{str(int(wildcards.value) - 1)}.txt" if int(wildcards.value) >= 0 else testl_input
+    output:
+        "testlt-{value}.txt"
+    script:
+        "mock.R"
+
+
+# # Parallel sequence of cis (all python) calls
+# testpc_n = 8
+# testpc_input = "data-line.txt"
+# 
+# rule testpc:
+#     input:
+#         expand("testpc-{index}.txt", index=range(1, 8))
+# 
+# rule testpc_single:
+#   output: "testpc-{index}"
+#   params: "data-line.txt"
+#   script: "mockp.py"
