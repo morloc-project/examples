@@ -1,0 +1,4 @@
+results/
+work/
+.nextflow*
+version*
