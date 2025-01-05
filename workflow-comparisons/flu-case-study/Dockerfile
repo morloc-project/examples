@@ -1,8 +1,10 @@
-FROM arendsee/morloc:v0.48.0
+# The Dockerfile for this build is available in the morloc
+# GitHub repo v0.51.0.
+FROM ghcr.io/morloc-project/morloc/morloc-full:0.51.1
 
-# Set environment variables to avoid interactive prompts during package installations
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=UTC
+# # Set environment variables to avoid interactive prompts during package installations
+# ENV DEBIAN_FRONTEND=noninteractive
+# ENV TZ=UTC
 
 # The following are imported from the base:
 #  * make
@@ -13,7 +15,7 @@ ENV TZ=UTC
 #
 # libeigen3-dev - eigen library for matrix operations in C++
 RUN    apt-get update \
-    && apt-get install -y libeigen3-dev \
+    && apt-get install -y libeigen3-dev pip hyperfine \
     && apt-get clean \
     && python3 -m pip install --upgrade pip setuptools wheel
 
@@ -34,11 +36,9 @@ ENV R_HOME="/usr/lib/R"
 ENV R_LIBS="/usr/lib/R/library"
 ENV R_LIBS_SITE="/usr/lib/R/library"
 
-RUN    Rscript -e 'install.packages("ape", repos = "https://cloud.r-project.org")' \
+RUN    Rscript -e 'install.packages(c("ape", "optparse", "rlang", "future"), repos = "https://cloud.r-project.org")' \
     && R CMD build flutree \
-    && R CMD INSTALL flutree_*.tar.gz \
-    && Rscript -e 'install.packages("remotes", repos  = "https://cloud.r-project.org")' \
-    && Rscript -e 'remotes::install_github("morloc-project/rmorlocinternals", dependencies=TRUE)'
+    && R CMD INSTALL flutree_*.tar.gz
 
 #### Setup workflow managers
 
@@ -56,9 +56,9 @@ RUN apt-get install nlohmann-json3-dev
 RUN apt-get install time
 
 #### Setup morloc modules for case study
-RUN    morloc install json \
-    && morloc install bio \
-    && morloc install matrix
+RUN    morloc install json   --commit a593104c \
+    && morloc install bio    --commit ef3554c6 \
+    && morloc install matrix --commit 12b2ad34
 
 # Cleanup to reduce image size
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*

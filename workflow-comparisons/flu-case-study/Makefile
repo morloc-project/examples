@@ -1,9 +1,12 @@
-REPO=arendsee/flucase-comparisons
+REPO=ghcr.io/morloc-project/morloc/flu-case:0.51.0
 
 # Build the required docker image
 build:
-	docker build -t ${REPO} .
+	podman build --no-cache --force-rm -t ${REPO} .
 
 # Open a shell
 shell:
-	docker run -v ${PWD}:/workflow-comparisons -w /workflow-comparisons -it ${REPO} /bin/bash
+	podman run -v ${PWD}:/workflow-comparisons -w /workflow-comparisons -it ${REPO} /bin/bash
+
+clean:
+	for f in cases/*; do $(MAKE) -C $$f  clean; done
