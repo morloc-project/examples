@@ -46,7 +46,7 @@ hyperfine \
   -L mode testlc \
   -L lang python \
   --export-csv $TEMP \
-  "python3 main.py --nodes {node} --inputfile ../${EMPTY}"
+  "python3 main.py {node} ../${EMPTY}"
 cat $TEMP >> $STATFILE && rm $TEMP
 
 hyperfine \
@@ -56,7 +56,7 @@ hyperfine \
   -L mode testlc \
   -L lang R \
   --export-csv $TEMP \
-  "Rscript --vanilla main.R --nodes {node} --inputfile ../${EMPTY}"
+  "Rscript --vanilla main.R {node} ../${EMPTY}"
 cat $TEMP >> $STATFILE && rm $TEMP
 
 hyperfine \
@@ -77,7 +77,7 @@ hyperfine \
   -L mode testlc \
   -L lang python \
   --export-csv $TEMP \
-  "python3 main.py --nodes {node} --inputfile ../test-data-{size}0MB.txt"
+  "python3 main.py {node} ../test-data-{size}0MB.txt"
 cat $TEMP >> $STATFILE && rm $TEMP
 
 hyperfine \
@@ -87,7 +87,7 @@ hyperfine \
   -L mode testlc \
   -L lang R \
   --export-csv $TEMP \
-  "Rscript --vanilla main.R --nodes {node} --inputfile ../test-data-{size}0MB.txt"
+  "Rscript --vanilla main.R {node} ../test-data-{size}0MB.txt"
 cat $TEMP >> $STATFILE && rm $TEMP
 
 hyperfine \
@@ -109,7 +109,7 @@ hyperfine \
   -L mode loading \
   -L lang python \
   --export-csv $TEMP \
-  "python3 main.py --nodes {node} --inputfile ../test-data-{size}0MB.txt"
+  "python3 main.py {node} ../test-data-{size}0MB.txt"
 cat $TEMP >> $STATFILE && rm $TEMP
 
 hyperfine \
@@ -119,7 +119,7 @@ hyperfine \
   -L mode loading \
   -L lang R \
   --export-csv $TEMP \
-  "Rscript --vanilla main.R --nodes {node} --inputfile ../test-data-{size}0MB.txt"
+  "Rscript --vanilla main.R {node} ../test-data-{size}0MB.txt"
 cat $TEMP >> $STATFILE && rm $TEMP
 
 hyperfine \
