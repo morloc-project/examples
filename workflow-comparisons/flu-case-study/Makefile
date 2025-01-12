@@ -1,8 +1,8 @@
-REPO=ghcr.io/morloc-project/morloc/flu-case:0.51.0
+REPO=ghcr.io/morloc-project/morloc/flu-case:0.51.1
 
 # Build the required docker image
 build:
-	podman build --no-cache --force-rm -t ${REPO} .
+	podman build -t ${REPO} .
 
 # Open a shell
 shell:
@@ -10,3 +10,10 @@ shell:
 
 clean:
 	for f in cases/*; do $(MAKE) -C $$f  clean; done
+
+push:
+	podman push ${REPO}
+
+# retrieve the latest morloc builds from the github registry
+pull:
+	podman pull ${REPO}

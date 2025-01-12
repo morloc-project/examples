@@ -17,15 +17,13 @@ process f{i} {{
     python3 ${{projectDir}}/mock.py --inputfile ${{inputfile}} --outputfile output-{i}.txt
     """
 }}
-// PROCESS {str(int(i)+1)}
-'''
+// PROCESS {str(int(i)+1)}'''
 
 def make_pipe(old_text):
     (_, _, i) = old_text.split(" ")
     return f'''
-     x{i} = f{i}(x{str(int(i)-1)})
-     // PIPE {str(int(i)+1)}
-'''
+    x{i} = f{i}(x{str(int(i)-1)})
+    // PIPE {str(int(i)+1)}'''
 
 with open("main.nf", "r") as fh:
     main_text = fh.read()

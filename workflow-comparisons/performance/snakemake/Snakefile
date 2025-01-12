@@ -1,5 +1,5 @@
 # Linear sequence
-testl_input = "../data-empty.json"
+testl_input = config["inputfile"]
 nnodes = config["nnodes"]
 
 rule testlc:
@@ -24,17 +24,3 @@ rule testlt_reduce:
         "testlt-{value}.txt"
     script:
         "mock.R"
-
-
-# # Parallel sequence of cis (all python) calls
-# testpc_n = 8
-# testpc_input = "data-line.txt"
-# 
-# rule testpc:
-#     input:
-#         expand("testpc-{index}.txt", index=range(1, 8))
-# 
-# rule testpc_single:
-#   output: "testpc-{index}"
-#   params: "data-line.txt"
-#   script: "mockp.py"

@@ -1,7 +1,9 @@
 import click
 
 def mockpy(x):
-    return x
+    if(len(x) <= 2):
+        return x
+    return x[-1] + x[0:-1] 
 
 def read_file(filename):
     with open(filename, "r") as fh:

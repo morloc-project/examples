@@ -36,7 +36,7 @@ ENV R_HOME="/usr/lib/R"
 ENV R_LIBS="/usr/lib/R/library"
 ENV R_LIBS_SITE="/usr/lib/R/library"
 
-RUN    Rscript -e 'install.packages(c("ape", "optparse", "rlang", "future"), repos = "https://cloud.r-project.org")' \
+RUN    Rscript -e 'install.packages(c("Rcpp", "ape", "optparse", "rlang", "future"), repos = "https://cloud.r-project.org")' \
     && R CMD build flutree \
     && R CMD INSTALL flutree_*.tar.gz
 

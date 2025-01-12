@@ -1,42 +1,57 @@
-module parallel
-  ( testlc
-  , testlt
-  , testpc
-  , testpt
-  , testlcf
-  , testltf
+module perform
+  ( pp,
+    pr,
+    pc,
+    rp,
+    rr,
+    rc,
+    cp,
+    cr,
+    cc
   )
 
-source Py from "mock.py" ("mockpy", "slurp")
-source R from "mock.R" ("mockr")
 
-source Py from "parallel.py" ("pmap", "nTimes", "repeat", "noop", "len" as strlen)
+source Py from "mock.py"   ("pmock", "pslurp", "pnTimes", "plength" as plen)
+source R from "mock.R"     ("rmock", "rslurp", "rnTimes", "rlength" as rlen)
+source Cpp from "mock.hpp" ("cmock", "cslurp", "cnTimes", "clength" as clen)
 
 type Py => Str = "str"
 type Py => Int = "int"
-type Py => List a = "list" a
-type Py => Unit = "None"
 
-type R => Str = "character"
-type R => List a = "list" a
+type R => Str = "raw"
+type R => Int = "integer"
+
+type Cpp => Str = "std::string"
+type Cpp => Int = "int"
 
 -- read an entire text file into memory
-slurp :: Str -> Str
+cslurp :: Str -> Str
+pslurp :: Str -> Str
+rslurp :: Str -> Str
 
-mockpy :: Str -> Str
-mockr :: Str -> Str
+-- apply a function multiple times to a value
+cnTimes a :: Int -> (a -> a) -> a -> a
+pnTimes a :: Int -> (a -> a) -> a -> a
+rnTimes a :: Int -> (a -> a) -> a -> a
 
-nTimes a b :: Int -> (a -> b) -> a -> b
-repeat a :: Int -> a -> [a]
-strlen :: Str -> Int
-noop a :: a -> ()
-pmap a b :: (a -> b) -> [a] -> [b]
+-- get the length of a string
+clen :: Str -> Int
+plen :: Str -> Int
+rlen :: Str -> Int
 
-testlc n = strlen . nTimes n mockpy
-testlt n = strlen . nTimes n mockr
+-- split the string by newline and then put it back together
+cmock :: Str -> Str
+pmock :: Str -> Str
+rmock :: Str -> Str
 
-testpc n = noop . pmap mockpy . repeat n
-testpt n = noop . pmap mockr  . repeat n
+pc n = plen . pnTimes n cmock . pslurp
+pp n = plen . pnTimes n pmock . pslurp
+pr n = plen . pnTimes n rmock . pslurp
 
-testlcf n = testlc n . slurp
-testltf n = testlt n . slurp
+rc n = rlen . rnTimes n cmock . rslurp
+rp n = rlen . rnTimes n pmock . rslurp
+rr n = rlen . rnTimes n rmock . rslurp
+
+cc n = clen . cnTimes n cmock . cslurp
+cp n = clen . cnTimes n pmock . cslurp
+cr n = clen . cnTimes n rmock . cslurp

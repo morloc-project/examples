@@ -1,6 +1,5 @@
 #!/usr/bin/env nextflow
 
-
 // PROCESS 1
 
 workflow {
