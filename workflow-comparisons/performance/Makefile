@@ -1,4 +1,4 @@
-REPO=ghcr.io/morloc-project/morloc/flu-case:0.51.1
+REPO=ghcr.io/morloc-project/morloc/flu-case:0.52.0
 
 shell:
 	# This command requires building the Dockerfile from flu-case-study
