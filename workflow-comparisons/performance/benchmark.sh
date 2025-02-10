@@ -33,7 +33,7 @@ do
   done > test-data-${i}0MB.txt
 done
 
-### SINGLE-LANGUAGE TESTS #####
+##### SINGLE-LANGUAGE TESTS #####
 
 cd single-language
 make
@@ -194,11 +194,12 @@ cat $TEMP >> $STATFILE && rm $TEMP
 
 cd ..
 
- 
+
 ##### NEXTFLOW PERFORMANCE TEST ####
 
 echo "Nextflow linear cis, size = 0"
 cd nextflow
+make deepclean
 mv ../test-data* .
 cat template.nf > main.nf
 
@@ -213,7 +214,6 @@ do
     -L size 0  \
     -L mode testlc  \
     -L lang nextflow  \
-    --show-output \
     --export-csv $TEMP  \
     "nextflow run main.nf --input=${EMPTY} --outdir=results"
   cat $TEMP >> $STATFILE && rm $TEMP

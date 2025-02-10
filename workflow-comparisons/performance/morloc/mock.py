@@ -11,6 +11,3 @@ def pnTimes(n, f, x):
     for _ in range(n):
         x = f(x)
     return x
-
-def plength(x):
-    return len(x)

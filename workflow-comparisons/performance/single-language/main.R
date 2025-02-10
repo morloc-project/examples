@@ -1,15 +1,13 @@
 mock <- function(x) {
-  # The charToRaw and rawToChar conversions are the main bottlenecks
-  raw_x <- charToRaw(x)
-  n <- length(raw_x)
+  n <- length(x)
   if (n <= 2){
       x
   } else {
       # Swap first and last characters
-      temp <- raw_x[1]
-      raw_x[1] <- raw_x[n]
-      raw_x[n] <- temp
-      rawToChar(raw_x)
+      temp <- x[1]
+      x[1] <- x[n]
+      x[n] <- temp
+      x
   }
 }
 
@@ -18,7 +16,7 @@ run_linear <- function(data, n) {
   for (i in 1:n) {
     data <- mock(data)
   }
-  nchar(data, type="bytes")
+  length(data)
 }
 
 
@@ -30,7 +28,7 @@ main <- function() {
 
   # Read data from file
   # `useBytes=TRUE` gives a ~10X speedup by not handling for wide characters
-  data <- readChar(con=inputfile, nchars=file.size(inputfile), useBytes=TRUE)
+  data <- readBin(con=inputfile, what = "raw", n = file.info(inputfile)$size)
 
   # Run linear processing
   length <- run_linear(data, nodes)

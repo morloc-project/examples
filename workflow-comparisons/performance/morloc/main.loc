@@ -11,23 +11,27 @@ module perform
   )
 
 
-source Py from "mock.py"   ("pmock", "pslurp", "pnTimes", "plength" as plen)
-source R from "mock.R"     ("rmock", "rslurp", "rnTimes", "rlength" as rlen)
+source Py from "mock.py"   ("pmock", "pslurp", "pnTimes", "len"     as plen)
+source R from "mock.R"     ("rmock", "rslurp", "rnTimes", "length"  as rlen)
 source Cpp from "mock.hpp" ("cmock", "cslurp", "cnTimes", "clength" as clen)
+
+type Bytes = Str
+type Filename = Str
 
 type Py => Str = "str"
 type Py => Int = "int"
 
-type R => Str = "raw"
+type R => Bytes = "raw"
+type R => Str = "character"
 type R => Int = "integer"
 
 type Cpp => Str = "std::string"
 type Cpp => Int = "int"
 
 -- read an entire text file into memory
-cslurp :: Str -> Str
-pslurp :: Str -> Str
-rslurp :: Str -> Str
+cslurp :: Filename -> Bytes
+pslurp :: Filename -> Bytes
+rslurp :: Filename -> Bytes
 
 -- apply a function multiple times to a value
 cnTimes a :: Int -> (a -> a) -> a -> a
@@ -35,14 +39,14 @@ pnTimes a :: Int -> (a -> a) -> a -> a
 rnTimes a :: Int -> (a -> a) -> a -> a
 
 -- get the length of a string
-clen :: Str -> Int
-plen :: Str -> Int
-rlen :: Str -> Int
+clen :: Bytes -> Int
+plen :: Bytes -> Int
+rlen :: Bytes -> Int
 
 -- split the string by newline and then put it back together
-cmock :: Str -> Str
-pmock :: Str -> Str
-rmock :: Str -> Str
+cmock :: Bytes -> Bytes
+pmock :: Bytes -> Bytes
+rmock :: Bytes -> Bytes
 
 pc n = plen . pnTimes n cmock . pslurp
 pp n = plen . pnTimes n pmock . pslurp

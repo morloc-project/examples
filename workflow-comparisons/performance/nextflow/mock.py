@@ -1,9 +1,9 @@
-import click
+import sys
 
-def mockpy(x):
+def mockpy(x : str) -> str:
     if(len(x) <= 2):
         return x
-    return x[-1] + x[0:-1] 
+    return x[-1] + x[0:-1]
 
 def read_file(filename):
     with open(filename, "r") as fh:
@@ -15,21 +15,7 @@ def write_file(x, filename):
         fh.write(x)
 
 
-@click.command(context_settings=dict(help_option_names=["-h", "--help"]))
-@click.option(
-    "--inputfile",
-    type=str,
-    help="The input data file"
-)
-@click.option(
-    "--outputfile",
-    type=str,
-    help="The output data file",
-)
-
-def cli(inputfile, outputfile):
-    write_file(mockpy(read_file(inputfile)), outputfile)
-
-
 if __name__ == "__main__":
-    cli()
+    inputfile = sys.argv[1]
+    outputfile = sys.argv[2]
+    write_file(mockpy(read_file(inputfile)), outputfile)

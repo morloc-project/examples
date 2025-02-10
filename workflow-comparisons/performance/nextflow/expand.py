@@ -14,7 +14,7 @@ process f{i} {{
 
     script:
     """
-    python3 ${{projectDir}}/mock.py --inputfile ${{inputfile}} --outputfile output-{i}.txt
+    python3 ${{projectDir}}/mock.py ${{inputfile}} output-{i}.txt
     """
 }}
 // PROCESS {str(int(i)+1)}'''
