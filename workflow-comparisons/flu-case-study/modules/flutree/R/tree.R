@@ -1,14 +1,18 @@
 library(ape)
 
-# Convert an unpacked tree into a phylo object
-#
-# The unpacked tree has the type:
-#
-#   ([string], [(int, int, float)], [string])
-#
-# The first list of strings are leaf names
-# The list of (int, int, float) tuples is the edge map and branch lengths
-# The second list of strings are node names
+#' Convert an unpacked tree into a phylo object
+#'
+#' The unpacked tree has the type:
+#'
+#'   ([string], [(int, int, float)], [string])
+#'
+#' The first list of strings are leaf names
+#' The list of (int, int, float) tuples is the edge map and branch lengths
+#' The second list of strings are node names
+#' 
+#' @param x list: an unpacked tree of type ([string], [(int, int, float)], [string])
+#'
+#' @return phylo object
 pack <- function(x){
     nodes <- x[[1]]
     edges <- sapply(x[[2]], function(e) e[[3]])
@@ -28,6 +32,12 @@ pack <- function(x){
     tree
 }
 
+#' Plot a phylogenetic tree and save as a PDF
+#'
+#' @param outputpdffilename character: filename of the output PDF (will be overwritten if it already exists)
+#' @param tree phylo: phylogenetic tree
+#'
+#' @return NULL
 plotTree <- function(outputpdffilename, tree) {
   pdf(
     outputpdffilename,
