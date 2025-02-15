@@ -38,20 +38,12 @@ std::string cslurp(const std::string& filename) {
     std::streamsize size = file.tellg();
     file.seekg(0, std::ios::beg);
 
-    #if __cplusplus >= 201703L
-        std::string buffer(size, '\0');
-        if (!file.read(buffer.data(), size)) {
-            throw std::runtime_error("Unable to read file");
-        }
-        return buffer;
-    #else
-        std::vector<char> buffer(size);
-        if (!file.read(buffer.data(), size)) {
-            throw std::runtime_error("Unable to read file");
-        }
-        std::string result(buffer.begin(), buffer.end());
-        return result;
-    #endif
+    std::string result(size, '\0');
+    if (!file.read(result.data(), size)) {
+        throw std::runtime_error("Unable to read file");
+    }
+
+    return result;
 }
 
 
