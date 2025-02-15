@@ -67,7 +67,7 @@ def plotTree(tree, filename):
         phylo_obj = flutree.pack(tree)
 
         # Call the R plotTree function with the R phylo object creating a PDF
-        flutree.plotTree(phylo_obj, filename)
+        flutree.plotTree(filename, phylo_obj)
 
 
 def make_setLeafName(records):
