@@ -2,8 +2,8 @@
 
 set -eu
 
-W=3
-NODES="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16"
+W=5
+NODES="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16"
 STATFILE=$PWD/stats.csv
 TEMP=temp-results
 EMPTY=test-data-empty.txt
@@ -72,7 +72,7 @@ cat $TEMP >> $STATFILE && rm $TEMP
 echo "Single-language linear cis, size = n"
 hyperfine \
   -w $W \
-  -L node 4 \
+  -L node 20 \
   -L size $NODES \
   -L mode testlc \
   -L lang python \
@@ -82,7 +82,7 @@ cat $TEMP >> $STATFILE && rm $TEMP
 
 hyperfine \
   -w $W \
-  -L node 4 \
+  -L node 20 \
   -L size $NODES \
   -L mode testlc \
   -L lang R \
@@ -92,7 +92,7 @@ cat $TEMP >> $STATFILE && rm $TEMP
 
 hyperfine \
   -w $W \
-  -L node 4 \
+  -L node 20 \
   -L size $NODES \
   -L mode testlc \
   -L lang C \
@@ -147,6 +147,18 @@ hyperfine \
   -L size 0 \
   -L mode pp,pr,pc,rp,rr,rc,cp,cr,cc \
   -L lang morloc \
+  --export-csv $TEMP \
+  "./nexus.py {mode} {node} '$(echo '"../test-data-empty.txt"')'"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+
+echo "Test much longer morloc and single language loops"
+hyperfine \
+  -w $W \
+  -L node 32,64,128,256,512,1024 \
+  -L size 0 \
+  -L mode pp,pc,cp,cc \
+  -L lang morloc-long \
   --export-csv $TEMP \
   "./nexus.py {mode} {node} '$(echo '"../test-data-empty.txt"')'"
 cat $TEMP >> $STATFILE && rm $TEMP
