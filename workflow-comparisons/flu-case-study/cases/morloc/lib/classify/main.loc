@@ -1,6 +1,8 @@
 module lib.classify (classify)
 
+
 import lib.flutypes (Clade)
+import types (Tuple2)
 
 -- Import generic functions
 import base
