@@ -1,0 +1,352 @@
+---
+title: "Morloc benchmarks"
+author: "Zebulun Arendsee"
+date: "2025-01-10"
+output: html_document
+---
+
+<!-- $ Rscript -e "rmarkdown::render('plot.Rmd', output_format = 'html_document')" -->
+
+The runtime performance of a component workflow can be modeled as follows: 
+
+$$
+t(n,k) = S + Lk + n(Q + Rk + Ik)
+$$
+
+where
+ * $t$ - (s) pipeline runtime
+ * $n$ - (unit) number of nodes in the pipeline
+ * $k$ - (Mb) size of the data that is passed between each node (assuming data size is the same between all nodes)
+ * $S$ - (s) the one-time cost for initializing the pipeline
+ * $L$ - (s/Mb) the one-time cost for loading an initial data file of size `k` 
+ * $Q$ - (s) the constant cost of starting a node
+ * $R$ - (s/Mb) the runtime of running node function per Mb of input
+ * $I$ - (s/Mb) the cost for moving data to/from a node per Mb
+
+## Setup
+
+```{r}
+require(ggplot2)
+require(dplyr)
+require(stringr)
+require(broom)
+
+df <- read.csv("stats-v0.52.0.csv", stringsAsFactors=FALSE)
+
+# Set the language that is loading the input file
+df$load_lang <- ifelse(df$parameter_lang == "morloc", str_replace(df$parameter_mode, "^.", ""), NA)
+df$load_lang <- ifelse(df$parameter_lang == "snakemake" & df$parameter_mode == "testlt", "R", df$load_lang)
+df$load_lang <- ifelse(df$parameter_lang %in% c("snakemake", "nextflow") & df$parameter_mode == "testlc", "python", df$load_lang)
+df$load_lang <- ifelse(!(df$parameter_lang %in% c("snakemake", "nextflow", "morloc")), df$parameter_lang, df$load_lang)
+df$load_lang <- tolower(ifelse(df$load_lang == "python", "p", df$load_lang))
+
+# Set the language running the code
+df$run_lang <- ifelse(df$parameter_lang == "morloc", str_replace(df$parameter_mode, ".$", ""), df$load_lang)
+```
+
+## Estimate $L$
+
+Set $n=0$ for single-language implementations. Each of these runs loads the
+input file and then quits. The `morloc`, `snakemake`, and `nextflow` programs
+use the same code for reading input, so the obtained coefficients should be
+transferable. The runtime is:
+
+$$
+t_{n=0} = S_{lang} + L k
+$$
+
+Now $L$ can be calculated as the slope for set of benchmarks with constant $n$
+and varying $k$ (input data size, ranging from 10Mb to 160MB). The intercept,
+$S_{lang}$, is the startup time for the single-language program.
+
+```{r}
+single_size_df <- df %>%
+    filter(parameter_mode == "loading") %>%
+    filter(load_lang %in% c("c", "r", "p")) %>%
+    mutate(size = parameter_size * 10) %>%
+    arrange(size)
+
+Ltab <- single_size_df %>%
+  group_by(load_lang) %>%
+  do(model = lm(mean ~ size, data = .)) %>%
+  summarise(
+    category = load_lang,
+    intercept = coef(model)[1],
+    coefficient = coef(model)[2],
+    r_squared = summary(model)$r.squared
+  )
+
+L <- Ltab$coefficient
+names(L) <- Ltab$category
+
+Ltab
+```
+
+
+```{r}
+ggplot(single_size_df) +
+    geom_path(aes(x = size, y = mean, color = parameter_lang, group = parameter_lang)) +
+    geom_point(aes(x = size, y = mean, color = parameter_lang), size=4) +
+    labs(x = "Size (Mb)", y = "Time (s)", title = "Loading -- size=n, ncalls=0") +
+    theme_minimal()
+```
+
+# Estimate $R$
+
+In the single-language implementations, set the number of loops to $n=20$ and
+run with variable size data. This allows the estimation of $R$, the runtime. All
+workflow languages use the same functions for in each loop, so $R$ should be
+transferable.
+
+$$
+t_{n=4} = S_{lang} + (L + Rn) k
+$$
+
+The slope is file loading, $L$, time plus $n$ times the node run time, $R$. So
+$R$ can be calculated from the slope as follows:
+
+$$
+R = (\beta_{1} - L) / n
+$$
+
+```{r}
+single_size_df <- df %>%
+    filter(parameter_mode != "loading") %>%
+    filter(run_lang %in% c("c", "r", "p")) %>%
+    filter(!grepl("data-empty", command)) %>%
+    mutate(size = parameter_size * 10) %>%
+    arrange(size)
+
+Rtab <- single_size_df %>%
+  group_by(run_lang) %>%
+  do(model = lm(mean ~ size, data = .)) %>%
+  summarise(
+    category = run_lang,
+    intercept = coef(model)[1],
+    coefficient = coef(model)[2],
+    r_squared = summary(model)$r.squared
+  )
+
+R <- (Rtab$coefficient - L) / 4
+names(R) <- Rtab$category
+
+Rtab
+```
+
+This is a rather round-about way of calculating $R$. A more direct solution
+would be to just measure $R$ directly by timing the loop in each language
+implementation. XXX - DO THIS AND COMPARE THE RESULTS TO THE REGRESSION RESULT.
+
+
+# Estimate $Q$ - cost of starting a node
+
+Set $k=0$ and estimate the constant cost of making an interop call. Here we
+compare all of our workflow languages when data of 0 length is passed
+between them. This measures the overhead of a call between nodes.
+
+$$
+t(n,k=0) = S + Lk + n(Q + Rk + Ik) = S + nQ
+$$
+
+The runtime is equal to pipeline startup time, $S$, plus the number of loops,
+$n$, times the node start cost, $Q$.
+
+
+```{r}
+dnode_df <- df %>%
+    filter(parameter_lang %in% c("morloc", "snakemake", "nextflow")) %>%
+    mutate(group = paste0(parameter_lang, "_", parameter_mode)) %>%
+    filter(grepl("data-empty", command)) %>%
+    group_by(group) %>%
+    #mutate(adj_mean = mean - min(mean)) %>%
+    ungroup() %>%
+    arrange(parameter_node)
+
+dnode_nonmorloc_df <- dnode_df %>%
+    filter(parameter_lang != "morloc")
+
+dnode_morloc_df <- dnode_df %>%
+    filter(parameter_lang == "morloc")
+
+Qtab <- dnode_df %>%
+  group_by(group) %>%
+  do(model = lm(mean ~ parameter_node, data = .)) %>%
+  summarise(
+    category = group,
+    intercept = coef(model)[1],
+    coefficient = coef(model)[2],
+    r_squared = summary(model)$r.squared
+  )
+
+Q <- Qtab$coefficient / 4
+names(Q) <- Qtab$category
+
+S <- Qtab$coefficient
+names(S) <- Qtab$category
+
+Qtab
+```
+
+
+```{r}
+ggplot() +
+    geom_path(data = dnode_nonmorloc_df, aes(x = parameter_node, y = mean, color = group, group = group), size=2) +
+    geom_path(data = dnode_morloc_df, aes(x = parameter_node, y = mean, color = load_lang, group = group)) +
+    geom_point(data = dnode_morloc_df, aes(x = parameter_node, y = mean, color = load_lang, shape = run_lang), size=4) +
+    labs(x = "Number of calls", y = "Time (s)", title = "size=0, ncalls=n")
+```
+
+The extremely high startup costs of Nextflow and Snakemake render the graph hard
+to visualize. We can subtract the intercept from each line to offset this:
+
+```{r}
+dnode_nonmorloc_df_qtab <- merge(dnode_nonmorloc_df, Qtab, by.x = "group", by.y = "category") %>%
+    dplyr::mutate(mean_adj = mean - intercept) %>%
+    arrange(parameter_node)
+
+dnode_morloc_df_qtab <- merge(dnode_morloc_df, Qtab, by.x = "group", by.y = "category") %>%
+    dplyr::mutate(mean_adj = mean - intercept) %>%
+    arrange(parameter_node)
+
+ggplot() +
+    geom_path(data = dnode_nonmorloc_df_qtab, aes(x = parameter_node, y = mean_adj, color = group, group = group), size=2) +
+    geom_path(data = dnode_morloc_df_qtab, aes(x = parameter_node, y = mean_adj, color = load_lang, group = group)) +
+    geom_point(data = dnode_morloc_df_qtab, aes(x = parameter_node, y = mean_adj, color = load_lang, shape = run_lang), size=4) +
+    labs(x = "Number of calls", y = "Time (s)", title = "Minus intercept; size=0, ncalls=n")
+```
+
+The morloc runs are so fast relative to Nextflow and Snakemake, that we still
+need to zoom in to distinguish them.
+
+```{r}
+ggplot(data = dnode_morloc_df_qtab) +
+    geom_path(aes(x = parameter_node, y = mean_adj, color = load_lang, group = group)) +
+    geom_point(, aes(x = parameter_node, y = mean_adj, color = load_lang, shape = run_lang), size=4) +
+    labs(x = "Number of calls", y = "Time (s)", title = "Just morloc; size=0, ncalls=n")
+```
+
+We see R interop is quite slow, relative to Python. This is may be a
+surmountable implementation issue. Python and C interop is limited by the speed
+messages can be passed over UNIX domain sockets. 
+
+Zooming in at this level, we can see that C calling Python versus Python calling
+C have different performance:
+
+```{r}
+dnode_morloc_df_qtab %>% filter(parameter_mode %in% c("cp", "pc")) %>%
+    ggplot() +
+        geom_path(aes(x = parameter_node, y = mean_adj, color = load_lang, group = group)) +
+        geom_point(aes(x = parameter_node, y = mean_adj, color = load_lang, shape = run_lang), size=4) +
+        labs(x = "Number of calls", y = "Time (s)", title = "Just morloc; size=0, ncalls=n")
+```
+
+
+The overhead of a single function call in a one-language morloc program is
+beyond the resolution limits of our benchmark. There is some overhead, since
+morloc, as currently implemented, creates wrappers around the functions. 
+
+
+## n=4, k variable   
+
+Repeating the main runtime equation and definitions:
+
+$$
+t(n,k) = S + Lk + n(Q + Rk + Ik)
+$$
+
+where
+ * $t$ - (s) pipeline runtime
+ * $n$ - (unit) number of nodes in the pipeline
+ * $k$ - (Mb) size of the data that is passed between each node (assuming data size is the same between all nodes)
+ * $S$ - (s) the one-time cost for initializing the pipeline
+ * $L$ - (s/Mb) the one-time cost for loading an initial data file of size `k` 
+ * $Q$ - (s) the constant cost of starting a node
+ * $R$ - (s/Mb) the runtime of running node function per Mb of input
+ * $I$ - (s/Mb) the cost for moving data to/from a node per Mb
+
+Now we set $n=4$
+
+$$
+t(n=4,k) = S + Lk + 4(Q + Rk + Ik)
+$$
+
+And subsitute in the intercept and slope for our benchmarks:
+
+$$
+t(k | n=4) = b0 + b1 k
+$$
+
+where the intercept is ($b0 = S + 4Q$) and the slope is ($b1 = L + 4R + 4I$)
+
+We have already estimated $L$ and $R$, so now we can estimate $I$ (the cost of
+moving data to/from a node per Mb).
+
+$$
+I = (b1 - L - 4R) / 4
+$$
+
+
+```{r}
+ipred_df <- df %>%
+    dplyr::filter(!grepl("data-empty", command)) %>%
+    dplyr::filter(parameter_node == 4) %>%
+    dplyr::arrange(parameter_size) %>%
+    mutate(group = paste0(parameter_lang, "_", parameter_mode))
+
+ipred_stat <- ipred_df %>%
+    group_by(group) %>%
+    do(model = lm(mean ~ parameter_size, data = .)) %>%
+    summarise(
+      category = group,
+      intercept = coef(model)[1],
+      coefficient = coef(model)[2],
+      r_squared = summary(model)$r.squared
+    )
+
+ipred_stat <- ipred_df %>%
+    select(group, load_lang, run_lang) %>%
+    dplyr::distinct() %>%
+    merge(ipred_stat, by.x = "group", by.y = "category") %>%
+    mutate(
+        L = sapply(load_lang, function(l) L[l]),
+        R = sapply(run_lang, function(l) R[l])
+    ) %>%
+    mutate(I = (coefficient - L - 4 * R) / 4) %>%
+    arrange(I)
+
+
+ipred_stat[, c("group", "I")]
+```
+
+
+```{r}
+snakemake_py <- df %>%
+    filter(parameter_lang == "snakemake") %>%
+    filter(parameter_mode == "testlc")
+
+snakemake_r <- df %>%
+    filter(parameter_lang == "snakemake") %>%
+    filter(parameter_mode == "testlt")
+
+nextflow <- df %>%
+    filter(parameter_lang == "nextflow")
+```
+
+```{r}
+all_size_df <- df %>%
+    filter(!grepl("data-empty", command)) %>%
+    filter(parameter_mode != "loading") %>%
+    filter( ((parameter_lang == "snakemake") & (parameter_mode == "testlc")) |
+            ((parameter_lang == "morloc") & (parameter_mode %in% c("pc", "cc", "cp"))) |
+            (parameter_lang %in% c("nextflow", "C", "R", "python"))
+          ) %>%
+    mutate(group = ifelse(parameter_lang == "morloc", paste0("morloc_", parameter_mode), parameter_lang)) %>%
+    mutate(size = parameter_size * 1e7) %>%
+    arrange(size)
+
+ggplot(all_size_df) +
+    geom_path(aes(x = size, y = mean, color = group, group = group)) +
+    geom_point(aes(x = size, y = mean, color = group), size=4) +
+    labs(x = "Size (Mb)", y = "Time (s)", title = "size=n, ncalls=4") +
+    theme_minimal()
+```
