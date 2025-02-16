@@ -31,7 +31,7 @@ require(dplyr)
 require(stringr)
 require(broom)
 
-df <- read.csv("stats-v0.52.0.csv", stringsAsFactors=FALSE)
+df <- read.csv("stats-v0.52.0-2.csv", stringsAsFactors=FALSE)
 
 # Set the language that is loading the input file
 df$load_lang <- ifelse(df$parameter_lang == "morloc", str_replace(df$parameter_mode, "^.", ""), NA)
@@ -44,7 +44,7 @@ df$load_lang <- tolower(ifelse(df$load_lang == "python", "p", df$load_lang))
 df$run_lang <- ifelse(df$parameter_lang == "morloc", str_replace(df$parameter_mode, ".$", ""), df$load_lang)
 ```
 
-## Estimate $L$
+## Estimate $L$ - data loading cost per Mb
 
 Set $n=0$ for single-language implementations. Each of these runs loads the
 input file and then quits. The `morloc`, `snakemake`, and `nextflow` programs
@@ -91,7 +91,7 @@ ggplot(single_size_df) +
     theme_minimal()
 ```
 
-# Estimate $R$
+# Estimate $R$ - functional runtime cost per Mb
 
 In the single-language implementations, set the number of loops to $n=20$ and
 run with variable size data. This allows the estimation of $R$, the runtime. All
@@ -110,14 +110,14 @@ R = (\beta_{1} - L) / n
 $$
 
 ```{r}
-single_size_df <- df %>%
-    filter(parameter_mode != "loading") %>%
+r_df <- df %>%
+    filter(parameter_mode != "loading" & parameter_node == 20) %>%
     filter(run_lang %in% c("c", "r", "p")) %>%
-    filter(!grepl("data-empty", command)) %>%
+    filter(!grepl("data-00MB", command)) %>%
     mutate(size = parameter_size * 10) %>%
     arrange(size)
 
-Rtab <- single_size_df %>%
+Rtab <- r_df %>%
   group_by(run_lang) %>%
   do(model = lm(mean ~ size, data = .)) %>%
   summarise(
@@ -131,6 +131,14 @@ R <- (Rtab$coefficient - L) / 4
 names(R) <- Rtab$category
 
 Rtab
+```
+
+```{r}
+ggplot(r_df) +
+    geom_path(aes(x = size, y = mean, color = parameter_lang, group = parameter_lang)) +
+    geom_point(aes(x = size, y = mean, color = parameter_lang), size=4) +
+    labs(x = "xxx", y = "Time (s)", title = "Loading -- size=n, ncalls=0") +
+    theme_minimal()
 ```
 
 This is a rather round-about way of calculating $R$. A more direct solution
@@ -156,7 +164,7 @@ $n$, times the node start cost, $Q$.
 dnode_df <- df %>%
     filter(parameter_lang %in% c("morloc", "snakemake", "nextflow")) %>%
     mutate(group = paste0(parameter_lang, "_", parameter_mode)) %>%
-    filter(grepl("data-empty", command)) %>%
+    filter(grepl("data-00MB", command)) %>%
     group_by(group) %>%
     #mutate(adj_mean = mean - min(mean)) %>%
     ungroup() %>%
@@ -288,7 +296,7 @@ $$
 
 ```{r}
 ipred_df <- df %>%
-    dplyr::filter(!grepl("data-empty", command)) %>%
+    dplyr::filter(!grepl("data-00MB", command)) %>%
     dplyr::filter(parameter_node == 4) %>%
     dplyr::arrange(parameter_size) %>%
     mutate(group = paste0(parameter_lang, "_", parameter_mode))
@@ -334,7 +342,7 @@ nextflow <- df %>%
 
 ```{r}
 all_size_df <- df %>%
-    filter(!grepl("data-empty", command)) %>%
+    filter(!grepl("data-00MB", command)) %>%
     filter(parameter_mode != "loading") %>%
     filter( ((parameter_lang == "snakemake") & (parameter_mode == "testlc")) |
             ((parameter_lang == "morloc") & (parameter_mode %in% c("pc", "cc", "cp"))) |

@@ -1,9 +1,16 @@
-def pmock(x):
-    if(len(x) <= 2):
-        return x
-    return x[-1] + x[0:-1] 
+import copy
 
-with open(snakemake.output[0], "w") as outfh:
-    with open(snakemake.input[0], "r") as infh:
-        text = pmock(infh.read())
-        print(text, file=outfh)
+def pmock(x):
+    if len(x) <= 2:
+        return x
+    y = copy.copy(x)
+    y[0], y[-1] = y[-1], y[0]
+    return y
+
+with open(snakemake.input[0], "rb") as infh:
+    data = bytearray(infh.read())
+
+modified_data = pmock(data)
+
+with open(snakemake.output[0], "wb") as outfh:
+    outfh.write(modified_data)

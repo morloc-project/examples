@@ -1,8 +1,8 @@
-REPO=ghcr.io/morloc-project/morloc/flu-case:0.52.0
+REPO=ghcr.io/morloc-project/morloc/flu-case:0.52.1
 
 # Build the required docker image
 build:
-	podman build -t ${REPO} .
+	podman build --no-cache --force-rm -t ${REPO} .
 
 # Open a shell
 shell:
