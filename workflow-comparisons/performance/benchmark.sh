@@ -35,181 +35,183 @@ do
   done > test-data-${i}0MB.txt
 done
 
-###### SINGLE-LANGUAGE TESTS #####
-#
-#cd single-language
-#make
-#
-#echo "Single-language linear cis, size = 0"
-#hyperfine \
-#  -w $W \
-#  -L node $NODES \
-#  -L size 0 \
-#  -L mode testlc \
-#  -L lang python \
-#  --export-csv $TEMP \
-#  "python3 main.py {node} ../${EMPTY}"
-#cat $TEMP >> $STATFILE && rm $TEMP
-#
-#hyperfine \
-#  -w $W \
-#  -L node $NODES \
-#  -L size 0 \
-#  -L mode testlc \
-#  -L lang R \
-#  --export-csv $TEMP \
-#  "Rscript --vanilla main.R {node} ../${EMPTY}"
-#cat $TEMP >> $STATFILE && rm $TEMP
-#
-#hyperfine \
-#  -w $W \
-#  -L node $NODES \
-#  -L size 0 \
-#  -L mode testlc \
-#  -L lang C \
-#  --export-csv $TEMP \
-#  "./cmain {node} ../${EMPTY}"
-#cat $TEMP >> $STATFILE && rm $TEMP
-#
-#echo "Single-language linear cis, size = n"
-#hyperfine \
-#  -w $W \
-#  -L node 20 \
-#  -L size $NODES \
-#  -L mode testlc \
-#  -L lang python \
-#  --export-csv $TEMP \
-#  "python3 main.py {node} ../test-data-{size}0MB.txt"
-#cat $TEMP >> $STATFILE && rm $TEMP
-#
-#hyperfine \
-#  -w $W \
-#  -L node 20 \
-#  -L size $NODES \
-#  -L mode testlc \
-#  -L lang R \
-#  --export-csv $TEMP \
-#  "Rscript --vanilla main.R {node} ../test-data-{size}0MB.txt"
-#cat $TEMP >> $STATFILE && rm $TEMP
-#
-#hyperfine \
-#  -w $W \
-#  -L node 20 \
-#  -L size $NODES \
-#  -L mode testlc \
-#  -L lang C \
-#  --export-csv $TEMP \
-#  "./cmain {node} ../test-data-{size}0MB.txt"
-#cat $TEMP >> $STATFILE && rm $TEMP
-#
-## Test loading times
-#echo "Single-language linear cis, size = n, nodes = 0"
-#hyperfine \
-#  -w $W \
-#  -L node 0 \
-#  -L size $NODES \
-#  -L mode loading \
-#  -L lang python \
-#  --export-csv $TEMP \
-#  "python3 main.py {node} ../test-data-{size}0MB.txt"
-#cat $TEMP >> $STATFILE && rm $TEMP
-#
-#hyperfine \
-#  -w $W \
-#  -L node 0 \
-#  -L size $NODES \
-#  -L mode loading \
-#  -L lang R \
-#  --export-csv $TEMP \
-#  "Rscript --vanilla main.R {node} ../test-data-{size}0MB.txt"
-#cat $TEMP >> $STATFILE && rm $TEMP
-#
-#hyperfine \
-#  -w $W \
-#  -L node 0 \
-#  -L size $NODES \
-#  -L mode loading \
-#  -L lang C \
-#  --export-csv $TEMP \
-#  "./cmain {node} ../test-data-{size}0MB.txt"
-#cat $TEMP >> $STATFILE && rm $TEMP
-#
-#
-#cd ..
-#
-#
-###### MORLOC PERFORMANCE TEST #####
-#cd morloc
-#morloc make main.loc
-#
-#echo "Morloc linear cis, size = 0"
-#hyperfine \
-#  -w $W \
-#  -L node $NODES \
-#  -L size 0 \
-#  -L mode pp,pr,pc,rp,rr,rc,cp,cr,cc \
-#  -L lang morloc \
-#  --export-csv $TEMP \
-#  "./nexus.py {mode} {node} '$(echo '"../test-data-00MB.txt"')'"
-#cat $TEMP >> $STATFILE && rm $TEMP
-#
-#
-#echo "Test much longer morloc and single language loops"
-#hyperfine \
-#  -w $W \
-#  -L node 32,64,128,192,256,384,512,798,1000 \
-#  -L size 0 \
-#  -L mode pp,pc,cp,cc \
-#  -L lang morloc-long \
-#  --export-csv $TEMP \
-#  "./nexus.py {mode} {node} '$(echo '"../test-data-00MB.txt"')'"
-#cat $TEMP >> $STATFILE && rm $TEMP
-#
-#echo "Morloc linear, size = n"
-#hyperfine \
-# -w $W \
-# -L node 4 \
-# -L size $NODES \
-# -L mode pp,pr,pc,rp,rr,rc,cp,cr,cc \
-# -L lang morloc \
-# --export-csv $TEMP \
-# "./nexus.py {mode} {node} '$(echo '"../test-data-{size}0MB.txt"')'"
-#cat $TEMP >> $STATFILE && rm $TEMP
-#
-#cd ..
-#
-###### SNAKEMAKE PERFORMANCE TEST #####
-#
-#cd snakemake
-#
-#echo "Snakemake linear cis, size = 0"
-#hyperfine \
-#  -w $W \
-#  -p "make clean" \
-#  -L node $NODES \
-#  -L size 0 \
-#  -L mode testlc,testlt \
-#  -L lang snakemake \
-#  --export-csv $TEMP \
-#  "snakemake -c1 --config nnodes={node} inputfile=../${EMPTY} -- {mode}"
-#cat $TEMP >> $STATFILE && rm $TEMP
-#
-#echo "Snakemake linear cis, size = n"
-#hyperfine \
-#  -w $W \
-#  -p "make clean" \
-#  -L node 4 \
-#  -L size $NODES \
-#  -L mode testlc,testlt \
-#  -L lang snakemake \
-#  --export-csv $TEMP \
-#  "snakemake -c1 --config nnodes={node} inputfile=../test-data-{size}0MB.txt  -- {mode}"
-#cat $TEMP >> $STATFILE && rm $TEMP
-#
-#cd ..
-#
-#
-###### NEXTFLOW PERFORMANCE TEST ####
+##### SINGLE-LANGUAGE TESTS #####
+
+cd single-language
+make
+
+echo "Single-language linear cis, size = 0"
+hyperfine \
+  -w $W \
+  -L node $NODES \
+  -L size 0 \
+  -L mode testlc \
+  -L lang python \
+  --export-csv $TEMP \
+  "python3 main.py {node} ../${EMPTY}"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+hyperfine \
+  -w $W \
+  -L node $NODES \
+  -L size 0 \
+  -L mode testlc \
+  -L lang R \
+  --export-csv $TEMP \
+  "Rscript --vanilla main.R {node} ../${EMPTY}"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+hyperfine \
+  -w $W \
+  -L node $NODES \
+  -L size 0 \
+  -L mode testlc \
+  -L lang C \
+  --export-csv $TEMP \
+  "./cmain {node} ../${EMPTY}"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+
+
+echo "Single-language linear cis, size = n"
+hyperfine \
+  -w $W \
+  -L node 20 \
+  -L size $NODES \
+  -L mode testlc \
+  -L lang python \
+  --export-csv $TEMP \
+  "python3 main.py {node} ../test-data-{size}0MB.txt"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+hyperfine \
+  -w $W \
+  -L node 20 \
+  -L size $NODES \
+  -L mode testlc \
+  -L lang R \
+  --export-csv $TEMP \
+  "Rscript --vanilla main.R {node} ../test-data-{size}0MB.txt"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+hyperfine \
+  -w $W \
+  -L node 20 \
+  -L size $NODES \
+  -L mode testlc \
+  -L lang C \
+  --export-csv $TEMP \
+  "./cmain {node} ../test-data-{size}0MB.txt"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+# Test loading times
+echo "Single-language linear cis, size = n, nodes = 0"
+hyperfine \
+  -w $W \
+  -L node 0 \
+  -L size $NODES \
+  -L mode loading \
+  -L lang python \
+  --export-csv $TEMP \
+  "python3 main.py {node} ../test-data-{size}0MB.txt"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+hyperfine \
+  -w $W \
+  -L node 0 \
+  -L size $NODES \
+  -L mode loading \
+  -L lang R \
+  --export-csv $TEMP \
+  "Rscript --vanilla main.R {node} ../test-data-{size}0MB.txt"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+hyperfine \
+  -w $W \
+  -L node 0 \
+  -L size $NODES \
+  -L mode loading \
+  -L lang C \
+  --export-csv $TEMP \
+  "./cmain {node} ../test-data-{size}0MB.txt"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+
+cd ..
+
+
+##### MORLOC PERFORMANCE TEST #####
+cd morloc
+morloc make main.loc
+
+echo "Morloc linear cis, size = 0"
+hyperfine \
+  -w $W \
+  -L node $NODES \
+  -L size 0 \
+  -L mode pp,pr,pc,rp,rr,rc,cp,cr,cc \
+  -L lang morloc \
+  --export-csv $TEMP \
+  "./nexus.py {mode} {node} '$(echo '"../test-data-00MB.txt"')'"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+
+echo "Test much longer morloc and single language loops"
+hyperfine \
+  -w $W \
+  -L node 32,64,128,192,256,384,512,798,1000 \
+  -L size 0 \
+  -L mode pp,pc,cp,cc \
+  -L lang morloc \
+  --export-csv $TEMP \
+  "./nexus.py {mode} {node} '$(echo '"../test-data-00MB.txt"')'"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+echo "Morloc linear, size = n"
+hyperfine \
+ -w $W \
+ -L node 4 \
+ -L size $NODES \
+ -L mode pp,pr,pc,rp,rr,rc,cp,cr,cc \
+ -L lang morloc \
+ --export-csv $TEMP \
+ "./nexus.py {mode} {node} '$(echo '"../test-data-{size}0MB.txt"')'"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+cd ..
+
+##### SNAKEMAKE PERFORMANCE TEST #####
+
+cd snakemake
+
+echo "Snakemake linear cis, size = 0"
+hyperfine \
+  -w $W \
+  -p "make clean" \
+  -L node $NODES \
+  -L size 0 \
+  -L mode testlc,testlt \
+  -L lang snakemake \
+  --export-csv $TEMP \
+  "snakemake -c1 --config nnodes={node} inputfile=../${EMPTY} -- {mode}"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+echo "Snakemake linear cis, size = n"
+hyperfine \
+  -w $W \
+  -p "make clean" \
+  -L node 4 \
+  -L size $NODES \
+  -L mode testlc,testlt \
+  -L lang snakemake \
+  --export-csv $TEMP \
+  "snakemake -c1 --config nnodes={node} inputfile=../test-data-{size}0MB.txt  -- {mode}"
+cat $TEMP >> $STATFILE && rm $TEMP
+
+cd ..
+
+
+##### NEXTFLOW PERFORMANCE TEST ####
 
 echo "Nextflow linear cis, size = 0"
 cd nextflow
