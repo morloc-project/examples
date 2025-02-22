@@ -1,11 +1,10 @@
 module flucase (plot)
 
-import types (Filename)
-
 import lib.retrieve (retrieve, setLeafName, FluConfig)
 import lib.classify (classify)
 import lib.treeplot (plotTree)
-import lib.flutypes (Date, Sequence, Clade)
+import lib.flutypes
+import types
 
 import bio.algo (upgma)
 import bio.tree (treeBy, mapLeaf)

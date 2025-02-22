@@ -1,11 +1,6 @@
 module lib.retrieve (retrieve, setLeafName, FluConfig)
 
 import lib.flutypes
- ( Accession
- , Clade
- , Date
- , Sequence
- )
 
 -- Import functions for accessing public sequence records
 import bio.db
