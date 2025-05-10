@@ -1,6 +1,6 @@
 module lib.flutypes (*)
 
-import types(Str)
+import types(Str, Tuple2)
 
 -- Type aliases
 type Accession = Str

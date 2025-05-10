@@ -20,7 +20,7 @@ import bio.db
 -- Import generic functions
 import base (map, concat, shard, join, keys, onFst, sleep, readMap)
 import json (JsonObj)
-import types (Filename)
+import types (Filename, Tuple2)
 
 
 -- Define the configuration record

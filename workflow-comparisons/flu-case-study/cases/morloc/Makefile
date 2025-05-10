@@ -1,7 +1,7 @@
-all: nexus.py
-	./nexus.py plot config.json
+all: nexus
+	./nexus plot config.json
 
-nexus.py:
+nexus:
 	morloc make main.loc
 
 clean:

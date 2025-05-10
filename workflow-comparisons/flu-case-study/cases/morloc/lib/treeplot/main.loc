@@ -4,4 +4,4 @@ import bio.tree (RootedTree)
 import types (Filename)
 
 source R from "plot-tree.R" ("plotTree")
-plotTree n :: Filename -> RootedTree n Real Str -> ()
+plot n :: Filename -> RootedTree n Real Str -> ()

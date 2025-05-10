@@ -5,26 +5,8 @@ presented in the first morloc paper.
 
 ## Setup
 
-These examples may be run on Linux or Mac.
-
-First create a Docker image that contains everything needed to run all of the
-comparisons (morloc, pybind11 for Python/C++ interop, nextflow, snakemake, etc):
-
-```
-make build
-```
-
-Then enter the container shell:
-
-```
-make shell
-```
-
-This mounts the current working directory into the container as a virtual
-volume. This means that from within the container you may alter this folder and
-the changes will persist on your machine, but no other changes (installed
-programs, for instance) will be visible.
-
+Enter the shell through the container setup in the parent folder (from
+`workflow-comparison/` run `make shell`).
 
 ## Six case study implementations
 

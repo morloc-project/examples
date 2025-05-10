@@ -48,14 +48,29 @@ setLeafName :: (JsonObj, Sequence) -> Str
 -- Retrieve sequence data from Entrez and tag reference strains
 retrieve :: FluConfig -> [((JsonObj, Clade), Sequence)]
 retrieve config =
-  ( map (onFst (labelRef refmap))
+  (
+  -- For each result, takes a map of reference clades and a JsonObj record,
+  -- extract the strain accession from the JSON record, and look the accession
+  -- up in the reference map (refmap). If a clade is found, then this strain is
+  -- a reference and its clade is stored as the second element in a returned
+  -- tuple, otherwise an empty string is stored.
+    map ( onFst (labelRef refmap))
+  -- flattens a list of lists into a list
   . concat
-  . map ( map parseRecord
+  . map (
+        -- parses XML record to (JsonObj, Sequence) pair
+          map parseRecord
+        -- pauses execution for a number of seconds; this step is needed because
+        -- Entrez limits the number of queries a user may make per second
         . sleep 1.0
+        -- takes a list of ids and fetches their full XML records from the Entrez database
         . fetchRecords fetchConfig
         )
+  -- breaks a list into many sub-lists of 30 or fewer items
   . shard 30
+  -- adds the list of reference accessions to the list of queried accessions
   . join (keys refmap)
+  -- sends a search query to Entrez and returns a list of record accessions
   . fetchIds searchConfig
   ) config@query
   where

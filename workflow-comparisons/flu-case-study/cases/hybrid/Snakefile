@@ -9,7 +9,7 @@ rule plot:
     # invalid JSON and would be interpreted as a file). But Bash removes one
     # level of quotation, so '"<value"' quoting is required.
     """
-    ./nexus.py plotTree '"{output}"' {input}
+    ./nexus plotTree '"{output}"' {input}
     """
 
 
@@ -19,7 +19,7 @@ rule name_leaves:
   output:
     "04-named-tree/tree.json"
   shell:
-    "./nexus.py setNames {input} > {output}"
+    "./nexus setNames {input} > {output}"
 
 
 rule classify:
@@ -28,7 +28,7 @@ rule classify:
   output:
     "03-classified-tree/tree.json"
   shell:
-    "./nexus.py classify {input} > {output}"
+    "./nexus classify {input} > {output}"
 
 
 rule make_tree:
@@ -37,7 +37,7 @@ rule make_tree:
   output:
     "02-unclassified-tree/tree.json"
   shell:
-    "./nexus.py makeTree {input} > {output}"
+    "./nexus makeTree {input} > {output}"
 
 
 rule retrieve_data:
@@ -46,4 +46,4 @@ rule retrieve_data:
   output:
     "01-retrieved-data/retrieved.json"
   shell:
-    "./nexus.py retrieve {input} > {output}"
+    "./nexus retrieve {input} > {output}"

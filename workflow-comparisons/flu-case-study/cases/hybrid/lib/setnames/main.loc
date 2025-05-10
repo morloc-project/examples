@@ -1,6 +1,6 @@
 module lib.setnames (setNames)
 
-import lib.flutypes (Clade)
+import lib.flutypes (Clade, Tuple2)
 
 import json (JsonObj)
 import bio.tree (mapLeaf)

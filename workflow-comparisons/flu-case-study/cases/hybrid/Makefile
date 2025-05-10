@@ -1,7 +1,7 @@
-all: nexus.py
+all: nexus
 	snakemake -c1
 
-nexus.py:
+nexus:
 	morloc make main.loc
 
 clean:

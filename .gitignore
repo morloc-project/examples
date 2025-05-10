@@ -2,3 +2,4 @@
 pool.*
 __pycache__/
 nexus
+nexus.c

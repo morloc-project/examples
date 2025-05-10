@@ -1,6 +1,6 @@
 module lib.maketree (makeTree)
 
-import lib.flutypes (Clade, Sequence)
+import lib.flutypes (Clade, Sequence, Tuple2)
 import json (JsonObj)
 
 import bio.algo (upgma)
