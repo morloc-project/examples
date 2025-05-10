@@ -1,14 +1,15 @@
 # Performance checks
 
-To run benchmarks:
+
+To run hyperfine benchmarks execute the benchmark.sh script
 
 ```
-# enter the flu case study shell
-$ make shell 
-
-# run hyperfine benchmarks from inside the shell
-$ ./benchmark.sh
+./benchmark.sh
 ```
+
+You probably want to enter the shell through the container setup in the parent
+directory. From there, just run `make shell`. Then return here to run the
+benchmarks. Note that the benchmarks may take a few hours to run.
 
 Output is written to stats.csv
 

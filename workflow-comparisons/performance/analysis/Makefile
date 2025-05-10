@@ -3,4 +3,4 @@ all:
 
 .PHONY:
 clean:
-	rm -rf plot-v0.51.1.html plot_files
+	rm -rf *.html plot_files

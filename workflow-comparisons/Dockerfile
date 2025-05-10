@@ -1,6 +1,5 @@
 # The Dockerfile for this build is available in the morloc
-# GitHub repo v0.52.1.
-FROM ghcr.io/morloc-project/morloc/morloc-full:0.52.1
+FROM ghcr.io/morloc-project/morloc/morloc-full:0.53.4
 
 # # Set environment variables to avoid interactive prompts during package installations
 # ENV DEBIAN_FRONTEND=noninteractive
@@ -27,7 +26,7 @@ RUN pip3 install pybind11 numpy biopython requests rpy2 click
 
 
 #### Setup the case study code and build apps
-COPY modules /cases-lib
+COPY flu-case-study/modules /cases-lib
 WORKDIR /cases-lib
 
 RUN pip3 install treebase/ tree/ retrieveFlu/
@@ -36,7 +35,7 @@ ENV R_HOME="/usr/lib/R"
 ENV R_LIBS="/usr/lib/R/library"
 ENV R_LIBS_SITE="/usr/lib/R/library"
 
-RUN    Rscript -e 'install.packages(c("Rcpp", "ape", "optparse", "rlang", "future"), repos = "https://cloud.r-project.org")' \
+RUN    Rscript -e 'install.packages(c("Rcpp", "ape", "optparse", "rlang"), repos = "https://cloud.r-project.org")' \
     && R CMD build flutree \
     && R CMD INSTALL flutree_*.tar.gz
 
