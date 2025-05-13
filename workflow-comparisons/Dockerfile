@@ -1,5 +1,5 @@
 # The Dockerfile for this build is available in the morloc
-FROM ghcr.io/morloc-project/morloc/morloc-full:0.53.4
+FROM ghcr.io/morloc-project/morloc/morloc-full:0.53.5
 
 # # Set environment variables to avoid interactive prompts during package installations
 # ENV DEBIAN_FRONTEND=noninteractive

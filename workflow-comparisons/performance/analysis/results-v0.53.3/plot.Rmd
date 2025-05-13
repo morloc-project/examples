@@ -7,7 +7,7 @@ output: html_document
 
 <!-- $ Rscript -e "rmarkdown::render('plot.Rmd', output_format = 'html_document')" -->
 
-Benchmarks for morloc v0.53.4
+Benchmarks using morloc v0.53.3
 
 # Benchmark comparing morloc, Snakemake and Nextflow
 
@@ -20,10 +20,9 @@ library(ggpmisc)
 require(patchwork)
 library(knitr)
 library(kableExtra)
-library(scales)
 
 
-df <- read.csv("stats-0.53.4.csv", stringsAsFactors=FALSE)
+df <- read.csv("stats-v0.53.3.csv", stringsAsFactors=FALSE)
 
 # Set the language that is loading the input file
 df$load_lang <- ifelse(df$parameter_lang == "morloc", str_replace(df$parameter_mode, "^.", ""), NA)
@@ -41,7 +40,7 @@ df$k <- df$parameter_size * 10
 df$mode <- df$parameter_mode
 df$lang <- df$parameter_lang
 
-df <- select(df, command, t, stddev, n, k, mode, lang, load_lang, run_lang) 
+df <- select(df, command, t, n, k, mode, lang, load_lang, run_lang) 
 ```
 
 The runtime performance of a component workflow can be modeled as follows: 
@@ -51,15 +50,14 @@ t(n,k) = S + Lk + n(Q + Rk + Ik)
 $$
 
 where
-
- - $t$: (s) total pipeline runtime
- - $n$: (unit) number of nodes in the pipeline
- - $k$: (Mb) size of the data that is passed between each node (assuming data size is the same between all nodes)
- - $S$: (s) the one-time cost for initializing the pipeline
- - $L$: (s/Mb) the one-time cost for loading an initial data file of size `k`
- - $Q$: (s) the constant cost of starting a node
- - $R$: (s/Mb) the runtime of a node function per Mb of input
- - $I$: (s/Mb) the cost for moving data to/from a node per Mb
+ * $t$ - (s) total pipeline runtime
+ * $n$ - (unit) number of nodes in the pipeline
+ * $k$ - (Mb) size of the data that is passed between each node (assuming data size is the same between all nodes)
+ * $S$ - (s) the one-time cost for initializing the pipeline
+ * $L$ - (s/Mb) the one-time cost for loading an initial data file of size `k` 
+ * $Q$ - (s) the constant cost of starting a node
+ * $R$ - (s/Mb) the runtime of running node function per Mb of input
+ * $I$ - (s/Mb) the cost for moving data to/from a node per Mb
 
 The $L$ and $R$ terms, measures of the time required to load initial data and
 run each core computation in ecah node, is mostly independent of the
@@ -76,13 +74,10 @@ and Snakemake. A few seconds of extra latency is not a major issue for
 computations that run more than a few minutes. But this latency qualitatively
 changes the field of use cases for the workflow language. For example, a few
 seconds of latency means that the workflow is inappropriate for interactive use
-in the shell or for running small jobs on the backend of a web service. On a
+in running small jobs as a CLI tool or on the backend of a web service. On a
 CLI, a half second delay is painfully noticeable. This can be especially
 irritating when requesting usage or version info from a tool and then having to
-wait for a print statement. On a interactive webservice, such as the Shiny
-dashboards used so frequently by researchers and data analysts who want to share
-their code with users and non-computational collaborators, lag like this can
-make an app unuseable. Still, for scientific computing, this is the least
+wait for a print statement. Still, for scientific computing, this is the least
 important of the three metrics.
 
 The node start time, $Q$, is a constant cost added for every node in the
@@ -95,27 +90,12 @@ handle the base case, each function must instead handle many input values and
 then combine there results in a single output. This pushes logic into the
 nodes. Rather than implementing the parallel compute strategy once at a
 high-level in the pipeline code, parallelism must be implemented independently
-in every program and then reimplemented at a higher level over the chunks. Many
-high-$Q$ language do not even support loops. For morloc, $Q$ is a tens to
-hundreds of microseconds for foreign calls and nearly zero cost for
+in every program. Many high-$Q$ language don't even support loops. For morloc,
+$Q$ is a few milliseconds for foreign calls and nearly zero cost for
 within-language calls (just function call overhead). For Nextflow and Snakemake,
-$Q$ is around 100ms. In morloc, $Q$ is the cost of refactoring data to the
-conanonical form, writing it to shared memory, sending a message to the foreign
-language server over a socket, reading the message on the other side,
-refactoring memory from the shared pool, running the code, and retuning the
-result. Importantly, the language servers and all their dependencies are loaded
-just once per machine. In contrast, for Snakemake and Nextflow, every call to a
-python-based node would require starting the interpreter, loading all required
-modules (if heavier modules like numpy or pandas are used, this can take several
-seconds), loading data (possibly from disk) in a tool-dependent manner, and then
-writing data to disk (usually). So costs grow *linearly* with the number of
-nodes. In contrast, morloc costs are constant since the language servers are
-only initialized once. Further, most code in morloc tight loops will not require
-foreign calls at all since the generic mapping functions will be automatically
-chosen that match the language of the called function. In this case, $Q$ drops
-to the cost of a function call (e.g., nanoseconds in C). Overall, high $Q$
-languages are precluded writing code that, for example, looping over the
-billion reads in an RNA-seq dataset.
+$Q$ is around 100ms. This is roughly the time expected to startup a Python
+process. But it precludes writing code that, for example, looping over the billion
+reads in an RNA-seq dataset.
 
 The data transfer time, $I$, is the time it takes to transfer a Mb of data
 between nodes. This time includes the costs of transforming data from storage
@@ -136,7 +116,7 @@ simple linear pipeline. I am using the python program `hyperfine` for
 benchmarking the runtime of the CLI programs. This can be pretty noisy,
 especially for Nextflow with is very long startup time. The benchmarking
 pipeline starts with a text file of varying size (from 0Mb to 160Mb). The file
-is loaded and then passed through a chain of functions that each perform a
+is loaded and then passed through a chain of functions that each performa a
 small operation on it. This operation requires copying the entire string and
 modifying it. I can estimate all the parameters in the runtime model with four
 benchmarks:
@@ -145,11 +125,11 @@ benchmarks:
     datasets of different sizes but sets the number of iterations (nodes in the
     loop) to 0. This means data is loaded and then nothing is done with
     it. Using linear regression, I calculate the slope of time versus
-    file size. The slope equals the $L$ parameter for the given language (e.g.,
+    filesize. The slope equals the $L$ parameter for the given language (e.g.,
     R, Python, C++).
 
  2. Estimate $R$ by running a series of single-language benchmarks with constant
-    file size but varying number of iterations. Now the slope will be equal to
+    filesize but varying number of iterations. Now the slope will be equal to
     the runtime cost per Mb of input.
 
  3. To estimate $Q$ and $S$, I set the data size, $k$, to 0 and benchmark
@@ -160,19 +140,19 @@ $$
 t(n,k=0) = S + Lk + n(Q + Rk + Ik) = S + nQ
 $$
 
- 5. To estimate $I$, we set the number of iterations to $n=5$ and let
+ 4. To estimate $I$, we set the number of iterations to $n=4$ and let
     the data size, $k$, vary. We can then use the previously estimated values
     for $S$, $Q$, $L$, and $R$, along with the estimated intercept and slope from the
     benchmarks, to solve for $I$, as below:
 
 $$
 t(n=20,k) = S + Lk + n(Q + Rk + Ik)
-          = S + Lk + 5Q + 5Rk + 5Ik
-          = (S + 5Q) + (L + 5R + 5I)k
+          = S + Lk + 4Q + 4Rk + 4Ik
+          = (S + 4Q) + (L + 4R + 4I)k
 $$
 
 $$
-I = (slope - L - 5R) / 5
+I = (slope - L - 4R) / 4
 $$
 
 ## Estimate $L$ - data loading cost per Mb
@@ -230,7 +210,7 @@ Lplot <- ggplot(Ldf, aes(x = k, y = t, color = lang)) +
         title = "Estimating S (k=x, n=0)"
     ) +
     theme_minimal() +
-    theme(legend.position = "right")
+    theme(legend.position = "none")
 
 ```
 
@@ -240,11 +220,11 @@ Lplot <- ggplot(Ldf, aes(x = k, y = t, color = lang)) +
 
 In the single-language implementations, set the number of loops to $n=20$ and
 run with variable size data. This allows the estimation of $R$, the runtime. All
-workflow languages use the same functions in each loop, so $R$ should be
+workflow languages use the same functions for in each loop, so $R$ should be
 transferable.
 
 $$
-t_{n=5} = S_{lang} + (L + Rn) k
+t_{n=4} = S_{lang} + (L + Rn) k
 $$
 
 The slope is file loading, $L$, time plus $n$ times the node run time, $R$. So
@@ -284,6 +264,7 @@ Rplot <- ggplot(Rdf, aes(x = k, y = t, color = lang, group = lang)) +
         parse = TRUE,
         coef.digits = 3
     ) +
+    geom_point(size = 4) +
     geom_point(size=4) +
     scale_color_manual(values = c(
         "C" = "#555555",
@@ -349,8 +330,21 @@ QSdf <- df %>%
     filter(lang %in% c("morloc", "snakemake", "nextflow")) %>%
     mutate(group = paste0(lang, "_", mode)) %>%
     filter(! group == "snakemake_testlt") %>%
-#filter(! group == "morloc_rr") %>% #### for now, since I lost my rr data
-    filter(n != 5) %>%
+    filter(k == 0) %>%
+    # Remove the ultra-long running pc and cp comparisons
+    filter(n <= 16) %>%
+    group_by(group) %>%
+    arrange(n) %>%
+    # stupid hack to avoid the overlap between two benchmark sets
+    mutate(
+        prev_t = lag(t),
+        next_t = lead(t),
+        diff = abs(t - (prev_t + next_t) / 2)
+    ) %>%
+    group_by(group, n, k) %>%
+    slice(which.min(diff)) %>%
+    select(-prev_t, -next_t, -diff) %>%
+    ungroup() %>%
     arrange(n)
 
 QSdf_nonmorloc <- QSdf %>%
@@ -369,71 +363,140 @@ Qtab <- QSdf %>%
     r_squared = summary(model)$r.squared
   )
 
-# To calculate the intercept, I regress over the lowest 3 values in each
-# group. This avoids the extreme leverage of the later data points.
-Qtab_lower <- QSdf %>%
-  group_by(group) %>%
+Q <- Qtab$coefficient
+names(Q) <- Qtab$category
+
+S <- Qtab$intercept
+names(S) <- Qtab$category
+
+QSPlot <- ggplot() +
+    geom_smooth(
+        data = QSdf_nonmorloc,
+        aes(x = n, y = t, color = lang, group = group),
+        method = "lm",
+        se = FALSE,
+        alpha=0.1,
+    ) +
+    ggpmisc::stat_poly_eq(
+        data = QSdf_nonmorloc,
+        aes(x = n, y = t, group = group, color = lang, label = ..eq.label..),
+        formula = y ~ x,
+        parse = TRUE,
+        coef.digits = 3
+    ) +
+    geom_point(data = QSdf_nonmorloc, aes(x = n, y = t, color = lang, group = group), size=2) +
+    geom_path(data = QSdf_morloc, aes(x = n, y = t, color = lang, group = group)) +
+    scale_color_manual(values = c(
+        "nextflow" = "blue",
+        "snakemake" = "dark green",
+        "morloc" = "orange"
+    )) +
+    labs(x = "Number of calls", y = "Time (s)", title = "size=0, ncalls=n") +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+
+
+ # The extremely high startup costs of Nextflow and Snakemake render the graph hard
+ # to visualize. We can subtract the intercept from each line to offset this:
+QSdf_nonmorloc_qtab <- merge(QSdf_nonmorloc, Qtab, by.x = "group", by.y = "category") %>%
+    dplyr::mutate(t_adj = t - intercept) %>%
+    arrange(n)
+
+QSdf_morloc_qtab <- merge(QSdf_morloc, Qtab, by.x = "group", by.y = "category") %>%
+    dplyr::mutate(t_adj = t - intercept) %>%
+    arrange(n)
+
+QSPlot_norm <- ggplot() +
+    geom_smooth(
+        data = QSdf_nonmorloc_qtab,
+        aes(x = n, y = t_adj, color = lang, group = group),
+        method = "lm",
+        se = FALSE,
+        alpha=0.1
+    ) +
+    ggpmisc::stat_poly_eq(
+        data = QSdf_nonmorloc_qtab,
+        aes(x = n, y = t_adj, group = group, color = lang, label = ..eq.label..),
+        formula = y ~ x,
+        parse = TRUE,
+        coef.digits = 3
+    ) +
+    geom_point(data = QSdf_nonmorloc_qtab, aes(x = n, y = t_adj, color = lang, group = group), size=2) +
+    geom_path(data = QSdf_morloc_qtab, aes(x = n, y = t_adj, color = lang, group = group)) +
+    scale_color_manual(values = c(
+        "nextflow" = "blue",
+        "snakemake" = "dark green",
+        "morloc" = "orange"
+    )) +
+    labs(x = "Number of calls", y = "Time (s)", title = "size=0, ncalls=n") +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+
+ # The morloc runs are so fast relative to Nextflow and Snakemake, that we still
+ # need to zoom in to distinguish them.
+QSPlot_norm_morloc <-
+    ggplot(QSdf_morloc_qtab) +
+    geom_smooth(
+        aes(x = n, y = t_adj, color = group, group = group),
+        method = "lm",
+        se = FALSE,
+        alpha=0.1
+    ) +
+    ggpmisc::stat_poly_eq(
+        aes(x = n, y = t, group = group, color = group, label = ..eq.label..),
+        formula = y ~ x,
+        parse = TRUE,
+        coef.digits = 3
+    ) +
+    scale_color_manual(values = c(
+        "morloc_cr" = "#AA2222",
+        "morloc_pr" = "#880000",
+        "morloc_rp" = "#FF0000",
+        "morloc_rc" = "#00FFFF",
+        "morloc_pc" = "#00FF00",
+        "morloc_cp" = "#0000FF",
+        "morloc_cc" = "#000000",
+        "morloc_pp" = "#444444",
+        "morloc_rr" = "#888888"
+    )) +
+    geom_point(aes(x = n, y = t_adj, color = group, shape = run_lang), size=2) +
+    labs(x = "Number of calls", y = "Time (s)", title = "Just morloc; size=0, ncalls=n") +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+
+
+QSPlot_norm_morloc_pc <- df %>%
+  filter(n > 16) %>%
+  filter(mode %in% c("pc", "cp")) %>%
   arrange(n) %>%
-  slice_head(n=3) %>%
-  do(model = lm(t ~ n, data = .)) %>%
-  summarise(
-    category = group,
-    intercept = coef(model)[1],
-    coefficient = coef(model)[2],
-    r_squared = summary(model)$r.squared
+  ggplot(aes(x = n, y = t, color = mode)) +
+    geom_path(aes(group = mode)) +
+    geom_point(size = 4) +
+    geom_smooth(method = "lm", se = FALSE) +
+    scale_color_manual(values = c(
+        "pc" = "blue",
+        "cp" = "orange"
+    )) +
+    ggpmisc::stat_poly_eq(
+        aes(label = ..eq.label..),
+        formula = y ~ x,
+        parse = TRUE,
+        coef.digits = 3
+    ) +
+    labs(x = "Number of calls", y = "Time (s)", title = "Python-C interop cost; size=0, ncalls=n") +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+
+
+QSCombined <- ((QSPlot + QSPlot_norm) / (QSPlot_norm_morloc + QSPlot_norm_morloc_pc)) +
+  patchwork::plot_annotation(
+    tag_levels = "A"
+  ) &
+  theme(
+    plot.tag = element_text(size = 12, face = "bold")
   )
 
-S <- Qtab_lower$intercept
-names(S) <- Qtab_lower$category
-
-# To calculate the slope, I regress over the highest 3 values in each group.
-Qtab_upper <- QSdf %>%
-  group_by(group) %>%
-  arrange(n) %>%
-  slice_tail(n=3) %>%
-  do(model = lm(t ~ n, data = .)) %>%
-  summarise(
-    category = group,
-    intercept = coef(model)[1],
-    coefficient = coef(model)[2],
-    r_squared = summary(model)$r.squared
-  )
-
-Q <- Qtab_upper$coefficient
-names(Q) <- Qtab_upper$category
-
-
-breaks <- 10^(-10:10)
-minor_breaks <- rep(1:9, 21)*(10^rep(-10:10, each=9))
-
-QSPlot <-
-  ggplot(data = filter(QSdf, load_lang != "r" & run_lang != "r")) +
-  geom_point(aes(x = n, y = t, color = group, group = group), size=2) +
-  geom_path(aes(x = n, y = t, color = group, group = group)) +
-  scale_color_manual(values = c(
-      "nextflow_testlc" = "blue",
-      "snakemake_testlc" = "dark green",
-#     "morloc_cr" = "light blue",
-#     "morloc_pr" = "light blue",
-      "morloc_cp" = "orange",
-#     "morloc_rp" = "orange",
-      "morloc_pc" = "black",
-#     "morloc_rc" = "black",
-#     "morloc_rr" = "gray",
-      "morloc_cc" = "gray",
-      "morloc_pp" = "tan"
-  )) +
-  labs(x = "Number of calls", y = "Time (s)", title = "size=0, ncalls=n") +
-  scale_x_log10(breaks = breaks, minor_breaks = minor_breaks) +
-  scale_y_log10(breaks = breaks, minor_breaks = minor_breaks) +
-  annotation_logticks() +
-  coord_equal() +
-  theme_bw() +
-  theme(legend.position = "right")
-
-ggsave("loglog.pdf", QSPlot + theme(legend.position = "none"), width=12, height=6)
-
-QSPlot
+QSCombined
 ```
 
 We see R interop is quite slow, relative to Python. This is may be a
@@ -468,51 +531,32 @@ where
  * $Q$ - (s) the constant cost of starting a node
  * $R$ - (s/Mb) the runtime of running node function per Mb of input
 
-Now we set $n=5$
+Now we set $n=4$
 
 $$
-t(n=5,k) = S + Lk + 5(Q + Rk + Ik)
+t(n=4,k) = S + Lk + 4(Q + Rk + Ik)
 $$
 
 And subsitute in the intercept and slope for our benchmarks:
 
 $$
-t(k | n=5) = b0 + b1 k
+t(k | n=4) = b0 + b1 k
 $$
 
-where the intercept is ($b0 = S + 5Q$) and the slope is ($b1 = L + 5R + 5I$)
+where the intercept is ($b0 = S + 4Q$) and the slope is ($b1 = L + 4R + 4I$)
 
 We have already estimated $L$ and $R$, so now we can estimate $I$ (the cost of
 moving data to/from a node per Mb).
 
 $$
-I = (b1 - L - 5R) / 5
+I = (b1 - L - 4R) / 4
 $$
 
 
 ```{r, echo=FALSE}
-
-dfc <- read.csv("constant-n.csv", stringsAsFactors=FALSE)
-
-# Set the language that is loading the input file
-dfc$load_lang <- ifelse(dfc$parameter_lang == "morloc", str_replace(dfc$parameter_mode, "^.", ""), NA)
-dfc$load_lang <- ifelse(dfc$parameter_lang == "snakemake" & dfc$parameter_mode == "testlt", "R", dfc$load_lang)
-dfc$load_lang <- ifelse(dfc$parameter_lang %in% c("snakemake", "nextflow") & dfc$parameter_mode == "testlc", "python", dfc$load_lang)
-dfc$load_lang <- ifelse(!(dfc$parameter_lang %in% c("snakemake", "nextflow", "morloc")), dfc$parameter_lang, dfc$load_lang)
-dfc$load_lang <- tolower(ifelse(dfc$load_lang == "python", "p", dfc$load_lang))
-
-# Set the language running the code
-dfc$run_lang <- ifelse(dfc$parameter_lang == "morloc", str_replace(dfc$parameter_mode, ".$", ""), dfc$load_lang)
-
-dfc$t <- dfc$min
-dfc$n <- dfc$parameter_node
-dfc$k <- dfc$parameter_size * 10
-dfc$mode <- dfc$parameter_mode
-dfc$lang <- dfc$parameter_lang
-
-dfc <- select(dfc, command, t, stddev, n, k, mode, lang, load_lang, run_lang) 
-
-ipred_df <- dfc %>%
+ipred_df <- df %>%
+    dplyr::filter(k != 0) %>%
+    dplyr::filter(n == 4) %>%
     dplyr::arrange(k) %>%
     mutate(group = paste0(lang, "_", mode))
 
@@ -534,47 +578,34 @@ ipred_stat <- ipred_df %>%
         L = sapply(load_lang, function(l) L[l]),
         R = sapply(run_lang, function(l) R[l])
     ) %>%
-    mutate(I = pmax(0, (coefficient - L - 3 * R) / 3)) %>%
+    mutate(I = (coefficient - L - 4 * R) / 4) %>%
     arrange(I)
+
 
 ipred_stat[, c("group", "I")]
 
-all_size_df <- dfc %>%
+all_size_df <- df %>%
     filter(!grepl("data-00MB", command)) %>%
     filter(mode != "loading") %>%
     filter( ((lang == "snakemake") & (mode == "testlc")) |
-            ((lang == "morloc") & (mode %in% c("pc", "cc", "cp", "pp"))) |
+            ((lang == "morloc") & (mode %in% c("pc", "cc", "cp"))) |
             (lang %in% c("nextflow", "C", "R", "python"))
           ) %>%
     mutate(group = ifelse(lang == "morloc", paste0("morloc_", mode), lang)) %>%
     mutate(size = k * 1e7) %>%
     arrange(size)
 
-memplot <- ggplot(all_size_df) +
+ggplot(all_size_df) +
     geom_path(aes(x = k, y = t, color = group, group = group)) +
     geom_point(aes(x = k, y = t, color = group), size=4) +
-    scale_color_manual(values = c(
-        "nextflow" = "blue",
-        "snakemake" = "dark green",
-        "morloc_cp" = "orange",
-        "morloc_pc" = "black",
-        "morloc_cc" = "gray",
-        "morloc_pp" = "tan"
-    )) +
-    labs(x = "Size (Mb)", y = "Time (s)", title = "size=n, ncalls=3") +
-    theme_bw()
-
-ggsave("memory.svg", memplot + theme(legend.position = "none"), width=4, height=4)
-
-memplot
+    labs(x = "Size (Mb)", y = "Time (s)", title = "size=n, ncalls=4") +
+    theme_minimal()
 ```
 
-
 ```{r, echo=FALSE}
-ipred_stat$Q = sapply(ipred_stat$group, function(name) Q[name])
-ipred_stat$S = sapply(ipred_stat$group, function(name) S[name])
-
-ipred_stat %>%
+Qtab %>%
+    mutate(S = intercept, Q = coefficient, group = category) %>%
+    merge(y = ipred_stat, by = "group") %>%
     mutate(
         S = S*1000,
         Q = Q*1000,
@@ -592,8 +623,11 @@ ipred_stat %>%
 ```
 
 
+
 ```{r, echo=FALSE}
-ipred_stat %>%
+Qtab %>%
+    mutate(S = intercept, Q = coefficient, group = category) %>%
+    merge(y = ipred_stat, by = "group") %>%
     mutate(
         S_rel = max(S) / S,
         Q_rel = max(Q) / Q,

@@ -1,4 +1,4 @@
-REPO=ghcr.io/morloc-project/morloc/flu-case:0.53.4
+REPO=ghcr.io/morloc-project/morloc/flu-case:0.53.5
 
 # Build the required docker image
 build:
@@ -6,7 +6,7 @@ build:
 
 # Open a shell
 shell:
-	podman run -v ${PWD}:/workflow-comparisons -w /workflow-comparisons -it ${REPO} /bin/bash
+	podman run --shm-size=4g -v ${PWD}:/workflow-comparisons -w /workflow-comparisons -it ${REPO} /bin/bash
 
 clean:
 	for f in cases/*; do $(MAKE) -C $$f  clean; done
