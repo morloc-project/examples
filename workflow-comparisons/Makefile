@@ -1,4 +1,4 @@
-REPO=ghcr.io/morloc-project/morloc/flu-case:0.53.5
+REPO=ghcr.io/morloc-project/morloc/flu-case:0.53.7
 
 # Build the required docker image
 build:

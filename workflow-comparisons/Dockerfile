@@ -1,5 +1,5 @@
 # The Dockerfile for this build is available in the morloc
-FROM ghcr.io/morloc-project/morloc/morloc-full:0.53.5
+FROM ghcr.io/morloc-project/morloc/morloc-full:0.53.7
 
 # # Set environment variables to avoid interactive prompts during package installations
 # ENV DEBIAN_FRONTEND=noninteractive
@@ -46,8 +46,8 @@ RUN    Rscript -e 'install.packages(c("Rcpp", "ape", "optparse", "rlang"), repos
 RUN pip3 install snakemake pulp==2.7.0
 
 # Install nextflow and dependencies
-RUN    pip3 install nextflow \
-    && apt-get install -y default-jre wget \
+RUN    apt-get install -y openjdk-21-jre wget \
+    && pip3 install nextflow \
     && nextflow info
 
 # Install JSON library needed for json module

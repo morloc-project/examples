@@ -7,10 +7,11 @@ examples of how this can work in practice.
 Details on each example are present in the example-specific READMEs. Here is a
 high-level overview of each:
 
- * `fasta` - an example of a morloc program that operates of FASTA-formatted data
-
  * `workflow-comparisons/flu-case-study` - a comparison of 6 bioinformatics
-   workflow strategies (bash, python, nextflow, snakemake, and hybrid) that is
-   associated with a paper (in review)
+   workflow strategies (bash, python, nextflow, snakemake, and hybrid) that are
+   associated with the first morloc paper (in review)
 
- * `workflow-comparisons/tiny-example` - a very minimal comparison of morloc to snakemake and nextflow
+ * `workflow-comparisons/tiny-example` - a very minimal comparison of morloc to
+   snakemake and nextflow, also associated with the morloc paper.
+
+ * `fasta` - an example of a morloc program that operates of FASTA-formatted data
