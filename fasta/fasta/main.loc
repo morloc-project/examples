@@ -1,16 +1,11 @@
 module fasta
  ( readFasta
  , writeFasta
+ , Fasta
+ , Filename
  )
 
-{- Define the Str type alias from cppbase, this allows 'Str' to be used in
-place of the C++ value of 'std::string' -}
-type Cpp => Str = "std::string"
-type Cpp => List a = "std::vector<$1>" a
-type Cpp => Tuple2 a b = "std::tuple<$1,$2>" a b
-
--- Take the reverse complement of a DNA sequence
-revcom :: Str -> Str
+import types (Str, List, Tuple2)
 
 {- A FASTA file contains a header, which is a string describing a sequence, and
 a biological sequence (DNA or protein). The type [(a, Str)] generalizes this by

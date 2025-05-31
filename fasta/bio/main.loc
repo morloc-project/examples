@@ -1,8 +1,8 @@
 module bio (revcom)
 
-source Cpp from "bio.hpp" ("revcom")
+import types (Str)
 
-type Cpp => Str = "std::string"
+source Cpp from "bio.hpp" ("revcom")
 
 -- Take the reverse complement of a DNA sequence
 revcom :: Str -> Str

@@ -8,9 +8,10 @@ module main
  , fastaRevcom
  )
 
+import types (Str, List, Tuple2)
 
 -- Import functions from the 'fasta' and 'bio' modules in the working directory
-import fasta (readFasta, writeFasta)
+import fasta (readFasta, writeFasta, Fasta, Filename)
 import bio (revcom)
 
 -- Import the local cppbase module. To install this module run:
