@@ -1,0 +1,175 @@
+module filewalk
+  ( getFileSize
+  , isHidden
+  , getFilesInDirectory
+  , walkDirectory
+  , hasExtension
+  , filterByExtension
+  , filterHidden
+  , sortByName
+  , sortBySize
+  , getAllFilesRecursive
+  , diskUsage
+  , listByExtension
+  )
+
+import root-py
+
+--' A directory file path
+--' literal: true
+--' metavar: DIR
+type Directory = Filename
+
+--' A filesystem path
+--' literal: true
+--' metavar: PATH
+type Path = Str
+
+--' Filename extension (e.g., ".py")
+--' metavar: EXT
+--' literal: true
+type Extension = Str
+
+--' Size of a file in bytes
+--' metavar: SIZE
+type FileSize = Int
+
+
+--' Maximum depth to traverse (-1 for unlimited)
+--' arg: -d/--depth
+--' metavar: DEPTH
+--' default: -1
+type MaxDepthOpt = Int
+
+--' arg: --extension
+--' default: ""
+type ExtensionOpt = Extension
+
+
+--' Include hidden files (starting with .)
+--' true: -a/--all
+type IncludeHiddenFlag = Bool
+
+--' Reverse the return order
+--' true: --reverse
+type ReverseFlag = Bool
+
+--' Include file sizes in output
+--' true: -s/--size
+type ShowSizeFlag = Bool
+
+--' Print output in human readable form
+--' true: -r/--human-readable
+type HumanReadableFlag = Bool
+
+--' Sort ourput by size in bytes
+--' true: -s/--size
+type SortBySizeFlag = Bool
+
+
+--------------------
+-- sourced functions
+--------------------
+
+source Py from "filewalk.py"
+  ( "get_file_size" as getFileSize
+  , "is_hidden" as isHidden
+  , "get_files_in_directory" as getFilesInDirectory
+  , "walk_directory" as walkDirectory
+  , "has_extension" as hasExtension
+  , "filter_by_extension" as filterByExtension
+  , "filter_hidden" as filterHidden
+  , "format_bytes_human_readable" as formatBytesHumanReadable
+  , "format_file_list" as formatFileList
+  )
+
+--' Get the number of bytes in a file
+--' return: size in bytes, or 0 if file cannot be accessed
+getFileSize :: Filename -> Int
+
+--' Check if a file or directory name is hidden (starts with .).
+--' return: True if hidden, False otherwise
+isHidden :: Filename -> Bool
+
+--' Get all files in a directory (non-recursive).
+--' return: List of file paths
+getFilesInDirectory :: Directory -> IncludeHiddenFlag -> [Filename]
+
+--' Walk a directory tree, yielding (dirpath, dirnames, filenames) tuples
+--' return: List of tuples containing dirpath, dirnames and filenames
+walkDirectory
+  :: Directory
+  -> IncludeHiddenFlag
+  -> MaxDepthOpt
+  -> [(Directory, [Directory], [Filename])] 
+
+--' Check if a filename has a specific extension.
+--' return: True if filename ends with EXTENSION
+hasExtension :: Filename -> Extension -> Bool
+
+--' Filter a list of file paths by extension.
+filterByExtension :: Extension -> [Filename] -> [Filename]
+filterByExtension ext = filter (hasExtension _ ext)
+
+--' Filter out hidden files from a list.
+filterHidden :: [Filename] -> [Filename]
+filterHidden = filter isHidden
+
+--' Format a byte size as human-readable string
+--'
+--' Uses the extensions B, KB, MB, GB and TB, where
+--' 1KB = 1024 bytes
+--'
+--' return: Formatted string (e.g., "1.50 MB")
+formatBytesHumanReadable :: FileSize -> Str
+
+--' Format a list of file paths as a string.
+--' return: Formatted string with one file per line
+formatFileList :: [Filename] -> ShowSizeFlag -> Str
+
+
+--------------------
+-- derived functions
+--------------------
+
+--' Sort file paths alphabetically by name.
+sortByName :: [Filename] -> ReverseFlag -> [Filename]
+sortByName xs rev = branch (const rev) (reverse . sort) sort xs
+
+--' Sort file paths by file size
+--' return: Sorted list of file paths
+sortBySize :: [Filename] -> [Filename]
+sortBySize xs = map .1 (sort (zipWith (_,_) (map getFileSize xs) xs))
+
+pathJoin :: Path -> Path -> Path
+pathJoin p1 p2 = "#{p1}/#{p2}"
+
+--' Get all files in a directory tree.
+getAllFilesRecursive :: Directory -> IncludeHiddenFlag -> MaxDepthOpt -> [Filename]
+getAllFilesRecursive p h d =
+  ( fold mappend [] 
+  . map (\t -> map (\f -> pathJoin (.0 t) f) (.2 t))
+  ) ( walkDirectory p h d )
+
+--' Calculate total disk usage of a directory.
+diskUsage :: Path -> HumanReadableFlag -> IncludeHiddenFlag -> MaxDepthOpt -> Str
+diskUsage dir r h d =
+  ( branch (const r) formatBytesHumanReadable show
+  . fold add 0
+  . map getFileSize
+  ) ( getAllFilesRecursive dir h d)
+
+--' List files in a directory, optionally filtered by extension
+listByExtension
+  :: Directory
+  -> ExtensionOpt
+  -> SortBySizeFlag
+  -> ReverseFlag
+  -> IncludeHiddenFlag
+  -> MaxDepthOpt
+  -> [Filename]
+listByExtension dir ext ss rf hf df
+  = ( branch (const rf) reverse id
+    . branch (const ss) sortBySize id
+    . filter (hasExtension _ ext)
+    ) ( getAllFilesRecursive dir hf df )
