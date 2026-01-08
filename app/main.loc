@@ -1,0 +1,27 @@
+module app (run)
+
+import root-py
+
+--' Host IP address
+--' arg: --host
+--' metavar: HOST
+--' literal: true
+--' default: "0.0.0.0"
+type Host = Str
+
+--' Port number
+--' arg: --port
+--' metavar: PORT
+--' default: 8000
+type Port = Int
+
+--' run the app on the given host and port
+run :: Host -> Port -> ()
+
+source Py from "app.py" ("run_app" as run)
+
+
+
+
+
+
