@@ -2,8 +2,6 @@ module cal (cal, CalConfig)
 
 import root-py
 
-source Py from "cal.py" ("show_calendar_wrapper" as cal)
-
 --' Calendar display options
 --' unroll: true
 --' arg: --cal-config
@@ -36,3 +34,5 @@ record Py => CalConfig = "dict"
 --' name: cal
 --' return: Formatted calendar text
 cal :: CalConfig -> Str
+
+source Py from "cal.py" ("show_calendar_wrapper" as cal)

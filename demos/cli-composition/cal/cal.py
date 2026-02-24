@@ -5,11 +5,11 @@ def show_calendar_wrapper(kwargs):
     return show_calendar(**kwargs)
 
 def show_calendar(
-    num_months=1,
-    monday_first=True,
-    highlight_today=True,
-    show_week_numbers=True,
-    compact=True,
+      num_months = 1,
+      monday_first = True,
+      highlight_today = True,
+      show_week_numbers = True,
+      compact = True,
     ):
 
     today = date.today()
