@@ -1,0 +1,15 @@
+module briefing (cal, weather, briefing)
+
+import root-py
+import cal
+import weather
+
+source Py from "briefing.py" ("format_briefing")
+
+format_briefing :: Str -> Str -> Str
+
+--' Morning briefing with calendar and weather
+--' name: briefing
+--' return: Combined calendar and weather report
+briefing :: CalConfig -> WeatherConfig -> Str
+briefing c w = format_briefing (cal c) (weather w)

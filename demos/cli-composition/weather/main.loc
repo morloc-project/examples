@@ -1,0 +1,37 @@
+module weather (weather, WeatherConfig)
+
+import root-py
+
+source Py from "weather.py" ("get_weather")
+
+--' Weather display options
+--' unroll: true
+--' arg: --weather-config
+record WeatherConfig where
+  --' City or location name
+  --' arg: -l/--location
+  --' default: "New York"
+  --' literal: true
+  location :: Str
+
+  --' Use metric units
+  --' true: --metric
+  --' false: --imperial
+  --' default: true
+  metric :: Bool
+
+  --' Show compact one-line output
+  --' true: --compact
+  --' false: --full
+  --' default: false
+  compact :: Bool
+
+record Py => WeatherConfig = "dict"
+
+get_weather :: WeatherConfig -> Str
+
+--' Get current weather for a location
+--' name: weather
+--' return: Weather report
+weather :: WeatherConfig -> Str
+weather = get_weather

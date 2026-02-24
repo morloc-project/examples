@@ -1,0 +1,38 @@
+module cal (cal, CalConfig)
+
+import root-py
+
+source Py from "cal.py" ("show_calendar_wrapper" as cal)
+
+--' Calendar display options
+--' unroll: true
+--' arg: --cal-config
+record CalConfig where
+
+  --' Start week on Monday
+  --' true: --monday
+  --' false: --sunday
+  --' default: true
+  monday_first :: Bool
+
+  --' Number of months to show
+  --' arg: -n/--months
+  --' default: 1
+  num_months :: Int
+
+  --' Highlight today
+  --' true: -t/--show-today
+  --' default: false
+  highlight_today :: Bool
+
+  --' Show week numbers
+  --' true: -w/--week-numbers
+  --' default: false
+  show_week_numbers :: Bool
+
+record Py => CalConfig = "dict"
+
+--' Show a monthly calendar
+--' name: cal
+--' return: Formatted calendar text
+cal :: CalConfig -> Str
