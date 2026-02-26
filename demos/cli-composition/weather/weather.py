@@ -2,7 +2,7 @@ import subprocess
 
 def get_weather(config):
     loc = config["location"].replace(" ", "+")
-    units = "m" if config["metric"] else "u"
+    units = "m" if config["is_metric"] else "u"
 
     if config["compact"]:
         url = f"https://wttr.in/{loc}?{units}&format=%l:+%c+%t+%w"

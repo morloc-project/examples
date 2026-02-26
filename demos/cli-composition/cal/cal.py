@@ -8,8 +8,7 @@ def show_calendar(
       num_months = 1,
       monday_first = True,
       highlight_today = True,
-      show_week_numbers = True,
-      compact = True,
+      show_week_numbers = True
     ):
 
     today = date.today()

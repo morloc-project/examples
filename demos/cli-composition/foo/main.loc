@@ -1,4 +1,4 @@
-module briefing (cal, weather, briefing)
+module foo (cal, weather, briefing)
 
 import root-py
 import cal

@@ -2,8 +2,6 @@ module weather (weather, WeatherConfig)
 
 import root-py
 
-source Py from "weather.py" ("get_weather")
-
 --' Weather display options
 --' unroll: true
 --' arg: --weather-config
@@ -18,7 +16,7 @@ record WeatherConfig where
   --' true: --metric
   --' false: --imperial
   --' default: true
-  metric :: Bool
+  is_metric :: Bool
 
   --' Show compact one-line output
   --' true: --compact
@@ -28,10 +26,9 @@ record WeatherConfig where
 
 record Py => WeatherConfig = "dict"
 
-get_weather :: WeatherConfig -> Str
-
 --' Get current weather for a location
 --' name: weather
 --' return: Weather report
 weather :: WeatherConfig -> Str
-weather = get_weather
+
+source Py from "weather.py" ("get_weather" as weather)
