@@ -1,23 +1,19 @@
 --' A TODO list manager
 module todo
   (
-  --* group: manage
-  --* add, toggle, and clean todos
     newIO
   , checkIO
   , cleanIO
-  --* group: view
-  --* view and summarize todos
-  --* 
-  --* \example:
-  --*   todo show
-  , countIO
-  , statsIO
   , showIO
   )
 
-import root-py
-import maybe-py as m
+import root-cpp
+import text-cpp (join)
+import shell-cpp (writeFile, Path)
+import maybe-cpp as m
+
+-- write to console with terminal newline
+print x = writeFile "/dev/stdout" "#{x}\n"
 
 -- Type definitions --
 
@@ -25,15 +21,15 @@ import maybe-py as m
 --' literal: true
 type Title = Str
 
+--' TODO list filename
+--' default: "todo.json"
+--' arg: --todo-file
+--' literal: true
+type TodoFile = Str
+
 --' Options for adding a TODO
 --' unroll: true
 record AddOpts where
-  --' description of the task
-  --' arg: -d/--desc
-  --' default: null
-  --' literal: true
-  description :: ?Str
-
   --' tags to associate with the task
   --' arg: --tags
   --' default: []
@@ -44,130 +40,45 @@ record AddOpts where
   --' default: 1
   priority :: Int
 
-record Py => AddOpts = "dict"
+-- record Py => AddOpts = "dict"
+record Cpp => AddOpts = "struct"
 
 record Todo where
   --' Item title string
   title :: Str
-  --' Optional item description
-  description :: ?Str
+  --' List of tags
+  tags :: [Str]
   --' Priority ranked from 1 to 3
   priority :: Int
   --' Whether the task is complete
   done :: Bool
 
-record Py => Todo = "dict"
+-- record Py => Todo = "dict"
+record Cpp => Todo = "struct"
 
 
--- Helpers
-
-maximum :: [a] -> ?a
-maximum xs
-  ? length xs == 0 = Null
-  : fold1 max xs
-
--- Source minimal Python functions --
-
---' Find by title
---' name: title
-findByTitle :: Str -> [Todo] -> ?Todo
-findByTitle title todos =
-  let matches = filter (\t -> .title t == title) todos
-  in ? length matches == 0 = Null
-     : at 0 matches
-
---' Find by index
---' name: idx
-findByIndex :: Int -> [Todo] -> ?Todo
-findByIndex = at
-
-showTodos :: [Todo] -> Str
-showTodos = fold (<>) "" . map showTodo . enumerate where
-  showTodo :: (Int, Todo) -> Str
-  showTodo x
-    =  show (.0 x) <> " "
-    <> checkbox <> " "
-    <> priorityStr (.1.priority x) <> " "
-    <> .1.title x <> "\n" <> desc
-    where
-      checkbox ? .1.done x = "✅" : "⬜"
-      priorityStr i
-        ? i == 1 = "🔴"
-        ? i == 2 = "🟡"
-        ? i == 3 = "🟢"
-        :          "⚫"
-
-      desc = m.fromMaybeWith "" (.1.description x)
-
--- helpers
-
-newTodo :: Title -> ?Str -> Int -> Todo
-newTodo title desc priority =
-  { title = title
-  , description = desc
-  , priority = priority
-  , done = False
-  }
-
---' Add a todo. Config provides nextId, AddOpts has optional desc and priority.
--- The existing list is ?[Todo] -- null means empty (tests coercion when passing []).
-new :: AddOpts -> Title -> [Todo] -> [Todo]
-new opts title todos =
-  let todo = newTodo title (.description opts) (.priority opts)
-  in snoc todos todo
-
-setWith :: (a -> a) -> Int -> [a] -> [a]
-setWith f i xs
-  ? i < 0 = xs
-  ? i >= length xs = xs
-  : slice 0 i xs <> [f (at i xs)] <> slice (i + 1) (length xs) xs
-
---' Complete a todo by index
-toggleCheck :: Int -> [Todo] -> [Todo]
-toggleCheck idx todos
-  ? idx < 0 = todos
-  ? idx >= length todos = todos
-  : setWith (\x -> .(.done = not (.done x)) x) idx todos
-
--- Count the number of done TODOs and the total number of TODOs
-count :: [Todo] -> (Int, Int)
-count todos =
-  ( length (filter .done todos)
-  , length todos
-  )
-
--- Remove completed todos using filter + pattern getter
-clean :: [Todo] -> [Todo]
-clean todos = filter (\t -> not (.done t)) todos
-
--- Summary string: "N total, M done, K pending"
-stats :: [Todo] -> Str
-stats todos =
-  let total = length todos
-  let done = length (filter .done todos)
-  let pending = total - done
-  in show total <> " total, " <> show done <> " done, " <> show pending <> " pending"
-
-
--- IO
-
-source Py from "todo.py" ("print_str" as print) 
-
-print :: Str -> <IO> ()
-
---' TODO list filename
---' default: "todo.json"
---' arg: --todo-file
---' literal: true
-type TodoFile = Str
-
---' Add a todo. Config provides nextId, AddOpts has optional desc and priority.
+--' Add a todo. Config provides nextId, AddOpts has tags and priority.
 --' name: new
 newIO :: TodoFile -> AddOpts -> Title -> <IO> ()
-newIO todofile opts title = do 
+newIO todofile opts title = do
   mayTodos <- @load todofile
   let todos = m.fromMaybeWith [] mayTodos
   @savej (new opts title todos) todofile
+  where
+    -- The existing list is ?[Todo] -- null means empty (tests coercion when passing []).
+    new :: AddOpts -> Title -> [Todo] -> [Todo]
+    new opts title todos =
+      let todo = newTodo title (.tags opts) (.priority opts)
+      in snoc todos todo
+
+    newTodo :: Title -> [Str] -> Int -> Todo
+    newTodo title tags priority =
+      { title = title
+      , tags = tags
+      , priority = priority
+      , done = False
+      }
+
 
 --' Switch completion status of item
 --' name: check
@@ -176,14 +87,21 @@ checkIO todofile idx = do
   mayTodos <- @load todofile
   let todos = m.fromMaybeWith [] mayTodos
   @savej (toggleCheck idx todos) todofile
+  where
 
---' Count the TODO done and total numbers
---' name: count
-countIO :: TodoFile -> <IO> (Int, Int)
-countIO todofile = do
-  mayTodos <- @load todofile
-  let todos = m.fromMaybeWith [] mayTodos
-  count todos
+    -- Complete a todo by index
+    toggleCheck :: Int -> [Todo] -> [Todo]
+    toggleCheck idx todos
+      ? idx < 0 = todos
+      ? idx >= length todos = todos
+      : setWith (\x -> .(.done = not (.done x)) x) idx todos
+
+    setWith :: (a -> a) -> Int -> [a] -> [a]
+    setWith f i xs
+      ? i < 0 = xs
+      ? i >= length xs = xs
+      : slice 0 i xs <> [f (at i xs)] <> slice (i + 1) (length xs) xs
+
 
 --' Remove completed todos
 --' name: clean
@@ -192,14 +110,11 @@ cleanIO todofile = do
   mayTodos <- @load todofile
   let todos = m.fromMaybeWith [] mayTodos
   @savej (clean todos) todofile
+  where
 
---' Show "N total, M done, K pending"
---' name: stats
-statsIO :: TodoFile -> <IO> Str
-statsIO todofile = do
-  mayTodos <- @load todofile
-  let todos = m.fromMaybeWith [] mayTodos
-  stats todos
+    -- Remove completed todos using filter + pattern getter
+    clean :: [Todo] -> [Todo]
+    clean todos = filter (\t -> not (.done t)) todos
 
 
 --' Show TODO list
@@ -214,4 +129,28 @@ showIO :: TodoFile -> <IO> ()
 showIO todofile = do
   mayTodos <- @load todofile
   let todos = m.fromMaybeWith [] mayTodos
+  print "Todo-list file: #{todofile}"
   print (showTodos todos)
+  where
+
+    showTodos :: [Todo] -> Str
+    showTodos = fold (<>) "" . map showTodo . enumerate
+
+    showTodo :: (Int, Todo) -> Str
+    showTodo x
+      =  show (.0 x) <> " "
+      <> checkbox <> " "
+      <> priorityStr (.1.priority x) <> " "
+      <> .1.title x <> tagstr
+      where
+        checkbox ? .1.done x = "✅" : "⬜"
+        tagstr =
+          let tags = .1.tags x
+          in ? length tags == 0 = "\n"
+             : " [#{join ", " tags}]\n"
+
+    priorityStr i
+      ? i == 1 = "🔴"
+      ? i == 2 = "🟡"
+      ? i == 3 = "🟢"
+      :          "⚫"
