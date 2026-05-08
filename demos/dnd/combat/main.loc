@@ -1,0 +1,49 @@
+module combat (rollAdv, fighterDamage, intro)
+
+import root-py
+import root-r
+import fate (roll, coinToss)
+
+--' Roll a pair of d20 dice and keep the larger result
+rollAdv :: <Rand> Int
+rollAdv = do fold max 0 !(roll 2 20)
+
+--' Damage done on hit, modifier + sum of dice rolls
+damage ::
+  --' Enemy Armor Class
+  Int ->
+  --' Attack modifier
+  Int ->
+  --' Attack dice
+  <Rand> [Int] ->
+  --' Damage modifier
+  Int ->
+  --' Damage dice
+  <Rand> [Int] ->
+  --' Total damage
+  <Rand> Int
+damage ac atkMod atkDice dmgMod dmgDice = do
+  let atkRoll = fold max 0 !atkDice
+  let atk = atkMod + atkRoll
+  let dmg = dmgMod + sum !dmgDice
+  ? atkRoll == 20 = 2 * dmg  -- critical
+    ? atk >= ac = dmg        -- hit
+    : 0                      -- miss
+
+--' Damage calculation for a fighter
+fighterDamage ::
+  --' Enemy Armor Class
+  Int ->
+  --' Fighter's damage
+  <Rand> Int
+fighterDamage ac = damage ac 4 (roll 1 20) 2 (roll 2 8)
+
+source R from "combat.R" ("intro")
+
+--' Introduce a new battle!
+intro ::
+  --' Monster name
+  --' literal: true
+  Str ->
+  --' DM's monster intro
+  Str

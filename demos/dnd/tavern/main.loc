@@ -1,0 +1,12 @@
+module tavern (randomClass, randomRace)
+
+import root-py
+import fate (choose)
+
+--' Select a random class
+randomClass :: <Rand> Str
+randomClass = choose ["Fighter", "Wizard", "Rogue", "Cleric", "Ranger", "Bard"]
+
+--' Select a random race
+randomRace :: <Rand> Str
+randomRace = choose ["Human", "Elf", "Dwarf", "Halfling"]

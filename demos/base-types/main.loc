@@ -1,0 +1,4 @@
+module varwidth (foo)
+
+foo :: UInt8 -> UInt8 -> UInt8
+foo x y = add x y

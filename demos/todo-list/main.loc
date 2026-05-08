@@ -40,9 +40,6 @@ record AddOpts where
   --' default: 1
   priority :: Int
 
--- record Py => AddOpts = "dict"
-record Cpp => AddOpts = "struct"
-
 record Todo where
   --' Item title string
   title :: Str
@@ -53,7 +50,10 @@ record Todo where
   --' Whether the task is complete
   done :: Bool
 
+-- record Py => AddOpts = "dict"
 -- record Py => Todo = "dict"
+
+record Cpp => AddOpts = "struct"
 record Cpp => Todo = "struct"
 
 

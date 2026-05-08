@@ -1,0 +1,11 @@
+module main (foo, bar)
+
+import root-py
+
+source Py from "main.py" ("foo", "bar")
+
+--' Take two reals and do thing
+foo :: Real -> Real -> Real
+
+--' Convert a list of reals into a thing
+bar :: [Real] -> Real

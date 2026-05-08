@@ -1,0 +1,24 @@
+module fate (roll, coinToss, choose)
+
+import root-py
+
+source Py from "fate.py"
+  ( "roll" as roll
+  , "coin_toss" as coinToss  
+  , "choose" as choose
+  )
+
+--' Roll n d-sided dice
+roll ::
+  --' Number of dice
+  Int ->
+  --' Number of pips per die
+  Int ->
+  --' Roll values
+  <Rand> [Int]
+
+--' Randomly return True or False
+coinToss :: <Rand> Bool
+
+--' Randomly choose one element from a non-empty list
+choose a :: [a] -> <Rand> a

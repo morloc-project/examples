@@ -1,0 +1,40 @@
+module foobar (foo, bar)
+
+import root-py
+
+source Py from "foobar.py"
+  ("foo", "bar")
+
+--' config record
+--' unroll: true
+--' arg: --config
+record Config where
+  --' temporary directory
+  --' arg: --tmp
+  --' literal: true
+  --' default: "/tmp"
+  tmpdir :: Str
+
+  --' cache the results
+  --' true: --cache
+  cache :: Bool
+
+  --' number of threads to use
+  --' arg: -t/--num-threads
+  --' default: 1
+  nthreads :: Int
+
+--' do foo stuff
+foo ::
+  Config ->
+  --' list of integers
+  --' metavar: INT_LIST
+  [Int] ->
+  --' sum of INT_LIST
+  Int 
+
+--' do bar stuff
+--' return: summed values
+bar ::
+  --' unroll: false
+  Config -> [Int] -> Int 
